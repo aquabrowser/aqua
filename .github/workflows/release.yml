@@ -1,0 +1,54 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Creating the release and uploading its files needs write access; the default token may be read-only.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      # Electron and the NSIS/portable tooling are downloaded on first use; keep them between runs.
+      - name: Cache Electron and electron-builder downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~\AppData\Local\electron\Cache
+            ~\AppData\Local\electron-builder\Cache
+          key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: electron-${{ runner.os }}-
+
+      - name: Install Dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      # The electron package has no install script: its binary comes on first use, and
+      # electron-builder packages node_modules/electron/dist directly (electronDist).
+      - name: Download Electron
+        run: node node_modules/electron/install.js
+
+      # Separate steps: a multi-line PowerShell step only fails on its last command's exit code.
+      - name: Type Check
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build and Publish Installer
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run dist -- --publish always

@@ -1,0 +1,663 @@
+/* Everything here renders inside the transparent overlay documents. */
+
+.popup-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.popup {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--popup-border);
+  background: var(--popup-bg);
+  box-shadow: var(--popup-shadow);
+  color: var(--text);
+  animation: popup-in 150ms var(--ease-out);
+}
+
+.popup.from-right {
+  transform-origin: top right;
+}
+.popup.from-left {
+  transform-origin: top left;
+}
+
+@keyframes popup-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.popup-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.popup-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 10px;
+}
+
+.popup-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.popup-subtitle {
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.popup-section {
+  padding: 8px 16px;
+}
+
+.popup-divider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--divider);
+  flex: none;
+}
+
+.popup-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 12px 12px;
+}
+
+.link-button {
+  color: var(--accent);
+  font-weight: 500;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.link-button:hover {
+  background: var(--accent-soft);
+}
+
+/* ─── Menu ───────────────────────────────────────────────────────────────── */
+
+.menu {
+  padding: 6px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 32px;
+  padding: 0 10px 0 12px;
+  border-radius: 7px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.menu-item svg {
+  color: var(--text-2);
+}
+
+.menu-item.highlighted {
+  background: var(--hover);
+}
+
+.menu-item[aria-disabled='true'] {
+  opacity: 0.42;
+}
+
+.menu-item .menu-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-item .menu-kbd {
+  color: var(--text-3);
+  font-size: 12px;
+  letter-spacing: 0.2px;
+}
+
+.menu-item .menu-check {
+  color: var(--accent);
+}
+
+.menu-separator {
+  height: 1px;
+  margin: 6px 8px;
+  background: var(--divider);
+}
+
+.menu-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+  padding: 0 4px 0 12px;
+  font-size: 13px;
+}
+
+.menu-row .menu-label {
+  flex: 1;
+}
+
+.menu-row .value {
+  min-width: 48px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+
+.mini-button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 28px;
+  border-radius: 7px;
+  color: var(--text);
+}
+
+.mini-button:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.mini-button:active:not(:disabled) {
+  background: var(--pressed);
+}
+
+.mini-button:disabled {
+  opacity: 0.4;
+}
+
+.mini-button.bordered {
+  border: 1px solid var(--divider);
+}
+
+/* ─── Omnibox suggestions ────────────────────────────────────────────────── */
+
+.suggestions {
+  padding: 6px 0;
+}
+
+.suggestion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 36px;
+  padding: 0 16px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.suggestion.selected {
+  background: var(--hover);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.suggestion-icon {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  color: var(--text-2);
+  flex: none;
+}
+
+.suggestion-text {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.suggestion-title {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.suggestion-title mark {
+  background: none;
+  color: inherit;
+  font-weight: 600;
+}
+
+.suggestion-sep {
+  color: var(--text-3);
+  flex: none;
+}
+
+.suggestion-url {
+  flex: 1 1 0;
+  min-width: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--accent);
+}
+
+.suggestion-hint {
+  color: var(--text-3);
+  flex: none;
+}
+
+/* ─── Find bar ───────────────────────────────────────────────────────────── */
+
+.findbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 44px;
+  padding: 0 6px 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--popup-border);
+  background: var(--popup-bg);
+  box-shadow: var(--popup-shadow);
+  animation: popup-in 150ms var(--ease-out);
+}
+
+.findbar-input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  border: 0;
+  background: transparent;
+  font-size: 13px;
+}
+
+.findbar.no-match .findbar-input {
+  color: var(--danger);
+}
+
+.findbar-count {
+  padding: 0 10px;
+  margin-right: 4px;
+  border-right: 1px solid var(--divider);
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ─── Downloads flyout ───────────────────────────────────────────────────── */
+
+.download-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 16px;
+  border-radius: 8px;
+  margin: 0 6px;
+}
+
+.download-row.clickable:hover {
+  background: var(--hover);
+}
+
+.file-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.file-icon .ext {
+  position: absolute;
+  bottom: -3px;
+  right: -5px;
+  padding: 0 3px;
+  border-radius: 4px;
+  background: var(--accent-fill);
+  color: var(--accent-contrast);
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 12px;
+  text-transform: uppercase;
+  max-width: 34px;
+  overflow: hidden;
+}
+
+.download-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.download-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.download-name.struck {
+  text-decoration: line-through;
+  color: var(--text-3);
+}
+
+.download-meta {
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.download-meta.error {
+  color: var(--danger);
+}
+
+.download-progress {
+  height: 4px;
+  margin-top: 7px;
+  border-radius: 2px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.download-progress > div {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent-fill);
+  transform-origin: 0 50%;
+  transition: transform 300ms var(--ease-out);
+}
+
+.download-progress.paused > div {
+  background: var(--text-3);
+}
+
+.download-progress.indeterminate > div {
+  width: 30%;
+  animation: indeterminate 1.2s var(--ease-in-out) infinite;
+}
+
+@keyframes indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(340%);
+  }
+}
+
+.download-actions {
+  display: flex;
+  gap: 2px;
+  flex: none;
+}
+
+.popup-empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--text-3);
+}
+
+/* ─── Content blocking ───────────────────────────────────────────────────── */
+
+.blocker-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 16px 14px;
+}
+
+.blocker-shield {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  transition:
+    background-color var(--t-med) var(--ease-out),
+    color var(--t-med) var(--ease-out);
+}
+
+.blocker-shield.off {
+  background: var(--surface-2);
+  color: var(--text-3);
+}
+
+.blocker-count {
+  font-size: 22px;
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.blocker-state {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.blocker-caption {
+  margin-top: 2px;
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.blocker-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px 6px;
+}
+
+.blocker-toggle-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.blocker-toggle-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.blocker-footer {
+  justify-content: space-between;
+  padding-left: 16px;
+}
+
+.blocker-meta {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-3);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Link status bubble (status layer) ─────────────────────────────────── */
+
+.status-bubble {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 24px;
+  padding: 0 10px;
+  overflow: hidden;
+  border: 1px solid var(--popup-border);
+  border-bottom: 0;
+  border-radius: 7px 7px 0 0;
+  background: var(--popup-bg);
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 23px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ─── Site info ──────────────────────────────────────────────────────────── */
+
+.site-status {
+  display: flex;
+  gap: 12px;
+  padding: 4px 16px 12px;
+}
+
+.site-status-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.site-status-icon.secure {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.site-status-icon.warning {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.site-status-icon.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.site-status-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.site-status-body {
+  margin-top: 2px;
+  color: var(--text-2);
+  line-height: 1.45;
+}
+
+.disclosure {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 36px;
+  padding: 0 16px;
+  font-size: 13px;
+  text-align: left;
+}
+
+.disclosure:hover {
+  background: var(--hover);
+}
+
+.disclosure svg:last-child {
+  margin-left: auto;
+  color: var(--text-3);
+  transition: transform var(--t-med) var(--ease-out);
+}
+
+.disclosure[aria-expanded='true'] svg:last-child {
+  transform: rotate(90deg);
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 6px 12px;
+  padding: 4px 16px 12px;
+  font-size: 12px;
+}
+
+.kv dt {
+  color: var(--text-3);
+}
+
+.kv dd {
+  margin: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+.kv dd.mono {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.permission-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 12px 0 16px;
+}
+
+.permission-row .menu-label {
+  flex: 1;
+}
+
+.permission-state {
+  color: var(--text-2);
+}
+
+/* ─── Bookmark bubble ────────────────────────────────────────────────────── */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 16px 8px;
+}
+
+.field label {
+  color: var(--text-2);
+}
+
+.text-input {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--divider);
+  background: var(--surface-2);
+  font-size: 13px;
+  transition:
+    border-color var(--t-fast) linear,
+    box-shadow var(--t-fast) linear;
+}
+
+.text-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  background: var(--surface);
+}
+
+/* Containers receive programmatic focus for keyboard handling; they never draw a ring. */
+.popup:focus-visible,
+.menu:focus-visible {
+  outline: none;
+}

@@ -1,0 +1,61 @@
+{
+  "fetchedAt": "2026-09-30T15:33:30.384Z",
+  "lists": {
+    "ublock-filters": {
+      "bytes": 1900005,
+      "sha256": "6ca0a887a5820ff9158e326b0ba52dc11762433deb6697166ed0e5d8f44cf884"
+    },
+    "ublock-badware": {
+      "bytes": 151235,
+      "sha256": "0a881b937f64c5b1c1d962a15cdd541c48f2df70322892c38a69c2509456da8d"
+    },
+    "ublock-quick-fixes": {
+      "bytes": 75242,
+      "sha256": "232bc75baa5d8ef778d33c7b0ea5bbcb47c3427d7063977e0318015a0e368118"
+    },
+    "ublock-unbreak": {
+      "bytes": 177159,
+      "sha256": "bcb23e06457eeac52f23fd0c5b5db930743432a7e65e62efdbd7b8dcadfec64c"
+    },
+    "easylist": {
+      "bytes": 2061511,
+      "sha256": "d2cbb0a5f8fe8801c99dbd96f53b1832f61a910d03e4b7809aa304b60e0b376f"
+    },
+    "plowe-0": {
+      "bytes": 70307,
+      "sha256": "23ac73a4d6e642e5cd4892f5d30bab644599bf326abdcea1f4811d2db44dd963"
+    },
+    "urlhaus-1": {
+      "bytes": 845475,
+      "sha256": "799132db978a5b73f2f7ee2996c5034268ab28a2574c6b69d068724d57f2619a"
+    },
+    "ublock-privacy": {
+      "bytes": 139647,
+      "sha256": "ddab8ee6aa03cac643321b5338428ef91ea076be1302bf23311e54be4048d914"
+    },
+    "easyprivacy": {
+      "bytes": 1495429,
+      "sha256": "ef1f846dc04eab1d0d5234bea61e82a8e42fa3dadf2a05f9eb0d2efa90f66249"
+    },
+    "ublock-cookies-easylist": {
+      "bytes": 375957,
+      "sha256": "ea103e892aee9f134092789119500ca03489e88bd182faeba0c45cea61d13020"
+    },
+    "fanboy-cookiemonster": {
+      "bytes": 1209981,
+      "sha256": "581bbf28bfafa9e9ed9dc72c8000429af2cd197c23f3e255a678d39bec2c32c5"
+    },
+    "ublock-annoyances": {
+      "bytes": 303700,
+      "sha256": "58ddb683f101c00aea132cdbc1b87ab074a17e39c4d6ef32f9a8e60dd9b75710"
+    },
+    "easylist-annoyances": {
+      "bytes": 163433,
+      "sha256": "7761e57ab06a1ad6a99879de26be3bda2ee716814af582c8ec08f263302d0b47"
+    }
+  },
+  "resources": {
+    "bytes": 183850,
+    "sha256": "5ce0ce483f0e5514308ccb0240960a9dd7bfeab417debeef96960dce2c95f690"
+  }
+}

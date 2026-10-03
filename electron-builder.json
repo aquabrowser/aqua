@@ -1,0 +1,75 @@
+{
+  "appId": "com.aquabrowser.app",
+  "productName": "Aqua Browser",
+  "electronDist": "node_modules/electron/dist",
+  "electronVersion": "44.4.5",
+  "extraMetadata": {
+    "description": "Aqua Browser"
+  },
+  "directories": {
+    "output": "dist"
+  },
+  "files": [
+    "out/**/*",
+    "!out/**/*.map",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "resources/filters",
+      "to": "filters",
+      "filter": [
+        "*.txt",
+        "*.json"
+      ]
+    }
+  ],
+  "asar": true,
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "aquabrowser",
+      "repo": "aqua"
+    }
+  ],
+  "afterPack": "scripts/after-pack.cjs",
+  "win": {
+    "icon": "build/icon.ico",
+    "target": [
+      {
+        "target": "portable",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      }
+    ]
+  },
+  "portable": {
+    "artifactName": "Aqua-Browser-Portable.exe"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "artifactName": "Aqua-Browser-Setup.exe"
+  },
+  "electronFuses": {
+    "runAsNode": false,
+    "enableNodeOptionsEnvironmentVariable": false,
+    "enableNodeCliInspectArguments": false,
+    "enableCookieEncryption": true,
+    "onlyLoadAppFromAsar": true,
+    "enableEmbeddedAsarIntegrityValidation": true,
+    "loadBrowserProcessSpecificV8Snapshot": false,
+    "grantFileProtocolExtraPrivileges": false
+  },
+  "electronLanguages": [
+    "en-US"
+  ]
+}

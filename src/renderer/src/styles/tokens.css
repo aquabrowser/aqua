@@ -1,0 +1,155 @@
+/*
+ * Design tokens.
+ *
+ * Every colour is written once as `light-dark(<light>, <dark>)`; which side
+ * applies follows `color-scheme`: the OS preference by default, or the theme
+ * chosen in Settings via `[data-theme]` on the root. Aqua's theme is
+ * deliberately independent of `prefers-color-scheme` as seen by websites
+ * (Settings → Website appearance), so the main process never forces
+ * `nativeTheme.themeSource`.
+ *
+ * Frame colours here must match `src/main/theme.ts` (window controls overlay).
+ */
+:root {
+  color-scheme: light dark;
+
+  --font-ui:
+    system-ui, 'Segoe UI Variable Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Ubuntu,
+    Cantarell, sans-serif;
+  --font-display:
+    'Segoe UI Variable Display', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Geometry - all multiples of 4 so 125/150/175 % scaling lands on whole device pixels. */
+  --strip-h: 40px;
+  --toolbar-h: 44px;
+  --bookmarks-h: 32px;
+  --tab-h: 34px;
+  --tab-max: 240px;
+  --tab-min: 44px;
+  --tab-pinned: 44px;
+  --tab-radius: 10px;
+  --caption-w: 138px;
+  --traffic-w: 0px;
+
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --t-fast: 110ms;
+  --t-med: 180ms;
+  --t-slow: 280ms;
+
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 14px;
+
+  --frame: light-dark(#e3e6ea, #1b1c1f);
+  --toolbar: light-dark(#ffffff, #2a2b2f);
+  --tab-hover: light-dark(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.055));
+  --tab-separator: light-dark(#b6bcc4, #46484e);
+  --text: light-dark(#1f2328, #e6e8eb);
+  --text-2: light-dark(#56606a, #a5abb3);
+  --text-3: light-dark(#858d96, #72787f);
+  --text-on-frame: light-dark(#2a2f35, #d5d8dc);
+  --text-on-frame-inactive: light-dark(#707882, #878d95);
+  --icon: light-dark(#3b4148, #d0d3d8);
+  --field: light-dark(#edf0f3, #1d1e21);
+  --field-hover: light-dark(#e4e7eb, #222327);
+  --field-focus: light-dark(#ffffff, #1d1e21);
+  --hover: light-dark(rgba(31, 35, 40, 0.07), rgba(255, 255, 255, 0.08));
+  --pressed: light-dark(rgba(31, 35, 40, 0.13), rgba(255, 255, 255, 0.14));
+  --divider: light-dark(#dde1e5, #3a3b40);
+  --accent: light-dark(#077a95, #52cbe7);
+  --accent-strong: light-dark(#04627a, #84dbef);
+  --accent-fill: light-dark(#0891b2, #3fb8d6);
+  --accent-soft: light-dark(rgba(8, 145, 178, 0.12), rgba(82, 203, 231, 0.14));
+  --accent-contrast: light-dark(#ffffff, #04222b);
+  /* The logo's own blue (resources/brand), as a soft light behind the large mark. */
+  --brand-glow: light-dark(rgba(0, 163, 255, 0.13), rgba(0, 163, 255, 0.2));
+  --focus-ring: light-dark(rgba(8, 145, 178, 0.55), rgba(82, 203, 231, 0.6));
+  --danger: light-dark(#c42b1c, #ff7266);
+  --danger-fill: light-dark(#c42b1c, #e5534b);
+  --danger-contrast: #ffffff;
+  --danger-soft: light-dark(rgba(196, 43, 28, 0.1), rgba(255, 114, 102, 0.13));
+  --danger-glow: light-dark(rgba(196, 43, 28, 0.22), rgba(255, 114, 102, 0.28));
+  --success: light-dark(#1a7f37, #4ac26b);
+  --success-soft: light-dark(rgba(26, 127, 55, 0.1), rgba(74, 194, 107, 0.13));
+  --warning: light-dark(#9a6700, #e3b341);
+  --warning-soft: light-dark(rgba(154, 103, 0, 0.12), rgba(227, 179, 65, 0.14));
+  --surface: light-dark(#ffffff, #27282c);
+  --surface-2: light-dark(#f4f5f7, #2d2e33);
+  --surface-3: light-dark(#e9ecef, #35363c);
+  --page-bg: light-dark(#f6f7f9, #1f2023);
+  --popup-bg: light-dark(#ffffff, #2c2d31);
+  --popup-border: light-dark(rgba(0, 0, 0, 0.09), rgba(255, 255, 255, 0.08));
+  /* Overlay shadows must stay within the 20px transparent margin of the overlay view (offset + blur ≤ 20). */
+  --popup-shadow:
+    0 4px 16px light-dark(rgba(15, 20, 25, 0.16), rgba(0, 0, 0, 0.45)),
+    0 1px 3px light-dark(rgba(15, 20, 25, 0.1), rgba(0, 0, 0, 0.3));
+  --dialog-shadow:
+    0 12px 32px light-dark(rgba(15, 20, 25, 0.18), rgba(0, 0, 0, 0.5)),
+    0 2px 6px light-dark(rgba(15, 20, 25, 0.08), rgba(0, 0, 0, 0.3));
+  --scrim: light-dark(rgba(15, 20, 25, 0.16), rgba(0, 0, 0, 0.42));
+  --card-shadow: 0 1px 2px light-dark(rgba(15, 20, 25, 0.06), transparent);
+  --scrollbar: light-dark(rgba(0, 0, 0, 0.22), rgba(255, 255, 255, 0.2));
+  --scrollbar-hover: light-dark(rgba(0, 0, 0, 0.36), rgba(255, 255, 255, 0.34));
+  --selection: light-dark(rgba(8, 145, 178, 0.22), rgba(82, 203, 231, 0.3));
+  --switch-off: light-dark(#c7ccd2, #4a4c52);
+  --segment-shadow: 0 1px 2px light-dark(rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.4));
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/*
+ * Dark themes (Settings → Appearance). Each one changes only the dark side of
+ * the tokens; Classic is the base above. Frame colours match src/main/theme.ts.
+ */
+
+/* Midnight: pure black surfaces, for OLED screens. */
+:root[data-dark='midnight'] {
+  --frame: light-dark(#e3e6ea, #000000);
+  --toolbar: light-dark(#ffffff, #0e0e10);
+  --tab-hover: light-dark(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.06));
+  --tab-separator: light-dark(#b6bcc4, #2c2c30);
+  --field: light-dark(#edf0f3, #000000);
+  --field-hover: light-dark(#e4e7eb, #09090b);
+  --field-focus: light-dark(#ffffff, #000000);
+  --divider: light-dark(#dde1e5, #232327);
+  --surface: light-dark(#ffffff, #0c0c0e);
+  --surface-2: light-dark(#f4f5f7, #121214);
+  --surface-3: light-dark(#e9ecef, #1a1a1d);
+  --page-bg: light-dark(#f6f7f9, #000000);
+  --popup-bg: light-dark(#ffffff, #121214);
+}
+
+/* Slate: cool blue-greys. */
+:root[data-dark='slate'] {
+  --frame: light-dark(#e3e6ea, #131920);
+  --toolbar: light-dark(#ffffff, #1c232d);
+  --tab-hover: light-dark(rgba(255, 255, 255, 0.6), rgba(160, 190, 225, 0.07));
+  --tab-separator: light-dark(#b6bcc4, #34404e);
+  --text: light-dark(#1f2328, #e1e7ef);
+  --text-2: light-dark(#56606a, #9fadbe);
+  --text-3: light-dark(#858d96, #6b7a8c);
+  --text-on-frame: light-dark(#2a2f35, #d3dbe5);
+  --text-on-frame-inactive: light-dark(#707882, #7f8c9b);
+  --icon: light-dark(#3b4148, #c9d3df);
+  --field: light-dark(#edf0f3, #11171e);
+  --field-hover: light-dark(#e4e7eb, #151c24);
+  --field-focus: light-dark(#ffffff, #11171e);
+  --hover: light-dark(rgba(31, 35, 40, 0.07), rgba(160, 190, 225, 0.08));
+  --pressed: light-dark(rgba(31, 35, 40, 0.13), rgba(160, 190, 225, 0.14));
+  --divider: light-dark(#dde1e5, #2a3441);
+  --surface: light-dark(#ffffff, #1a212b);
+  --surface-2: light-dark(#f4f5f7, #202834);
+  --surface-3: light-dark(#e9ecef, #28313e);
+  --page-bg: light-dark(#f6f7f9, #161d26);
+  --popup-bg: light-dark(#ffffff, #1e2631);
+  --switch-off: light-dark(#c7ccd2, #45505e);
+}

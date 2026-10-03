@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+
+# Build output and caches (electron-vite, electron-builder, TypeScript)
+out
+dist
+dist-*
+.cache
+.vite
+*.tsbuildinfo
+
+# The project website is kept outside this repository
+website/
+
+# Local environment and scratch files
+.env
+.env.*
+*.local
+scratch/
+tmp/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

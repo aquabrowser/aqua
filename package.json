@@ -1,0 +1,53 @@
+{
+  "name": "aqua-browser",
+  "version": "1.0.0",
+  "description": "Aqua - a privacy-focused Chromium browser built on Electron",
+  "main": "./out/main/index.js",
+  "author": "Aqua Browser Team",
+  "license": "GPL-3.0-only",
+  "private": true,
+  "homepage": "https://github.com/aquabrowser/aqua",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aquabrowser/aqua.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aquabrowser/aqua/issues"
+  },
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "test": "node --test --experimental-transform-types --import ./src/test/resolve-ts.mjs --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning src/test/omnibox.test.ts src/test/tracking.test.ts src/test/page-protections.test.ts src/test/cookies.test.ts src/test/site-storage.test.ts src/test/blocker.test.ts src/test/download-gate.test.ts src/test/browser-ui.test.ts src/test/profile-and-ntp.test.ts src/test/settings.test.ts src/test/history-ids.test.ts src/test/vault-lock.test.ts src/test/error-log.test.ts",
+    "fetch:filters": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/fetch-filters.mjs",
+    "format": "prettier --write src scripts",
+    "format:check": "prettier --check src scripts",
+    "icon": "electron scripts/make-icon.mjs",
+    "dist": "electron-vite build && electron-builder --win --x64",
+    "dist:portable": "electron-vite build && electron-builder --win portable --x64",
+    "dist:portable-folder": "electron-vite build && electron-builder --win dir --x64 && node scripts/pack-portable-folder.mjs"
+  },
+  "devDependencies": {
+    "@ghostery/adblocker": "^2.18.2",
+    "@types/node": "^24.19.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "electron": "44.4.5",
+    "electron-builder": "26.15.3",
+    "electron-vite": "^2.3.0",
+    "hash-wasm": "^4.12.0",
+    "lucide-react": "^0.460.0",
+    "prettier": "^3.9.9",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tldts": "^7.4.16",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  }
+}

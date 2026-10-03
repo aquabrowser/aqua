@@ -1,0 +1,1228 @@
+/* ─── Controls ───────────────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  border: 1px solid var(--divider);
+  background: var(--surface);
+  color: var(--text);
+  transition:
+    background-color var(--t-fast) linear,
+    border-color var(--t-fast) linear,
+    box-shadow var(--t-fast) linear;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.btn:active:not(:disabled) {
+  background: var(--surface-3);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+}
+
+.btn.primary {
+  border-color: transparent;
+  background: var(--accent-fill);
+  color: var(--accent-contrast);
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-fill) 88%, var(--text));
+}
+
+.btn.danger {
+  color: var(--danger);
+}
+
+.btn.danger:hover:not(:disabled) {
+  background: var(--danger-soft);
+  border-color: transparent;
+}
+
+.btn.ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn.ghost:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.btn.small {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  flex: none;
+  border-radius: 10px;
+  background: var(--switch-off);
+  transition: background-color var(--t-med) var(--ease-out);
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: transform var(--t-med) var(--ease-out);
+}
+
+.switch[aria-checked='true'] {
+  background: var(--accent-fill);
+}
+
+.switch[aria-checked='true']::after {
+  transform: translateX(16px);
+}
+
+.switch:disabled {
+  opacity: 0.45;
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 9px;
+  background: var(--surface-3);
+  flex: none;
+}
+
+.segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  color: var(--text-2);
+  transition:
+    background-color var(--t-fast) linear,
+    color var(--t-fast) linear;
+}
+
+.segmented button[aria-checked='true'] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--segment-shadow);
+}
+
+.select {
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--divider);
+  background: var(--surface);
+  font-size: 12px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.checkbox-row input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent-fill);
+}
+
+/* ─── Shared page scaffolding ────────────────────────────────────────────── */
+
+.page {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  background: var(--page-bg);
+  animation: page-in var(--t-med) var(--ease-out);
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Layout-neutral wrapper (ContentArea): no fade when the page belongs to a tab switched to. */
+.page-entry {
+  display: contents;
+}
+
+.page-entry.instant > .page {
+  animation: none;
+}
+
+.page-column {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px 32px 64px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.page-header h1 {
+  flex: 1;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.card {
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+
+.card + .card {
+  margin-top: 16px;
+}
+
+.card-title {
+  padding: 16px 20px 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.card-subtitle {
+  padding: 14px 20px 2px;
+  border-top: 1px solid var(--divider);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.card-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 56px;
+  padding: 10px 20px;
+}
+
+.card-row + .card-row {
+  border-top: 1px solid var(--divider);
+}
+
+.card-row .text {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-row .label {
+  font-size: 13px;
+}
+
+.card-row .hint {
+  margin-top: 2px;
+  color: var(--text-2);
+  line-height: 1.45;
+}
+
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 19px;
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  color: var(--text-3);
+  transition:
+    border-color var(--t-fast) linear,
+    box-shadow var(--t-fast) linear;
+}
+
+.search-field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.search-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 64px 16px;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.empty-state svg {
+  color: var(--text-3);
+  opacity: 0.8;
+}
+
+/* ─── New tab page ───────────────────────────────────────────────────────── */
+
+/*
+ * Anchored from the top rather than centred: shortcuts arriving (or being
+ * switched on and off) never move the clock.
+ */
+.ntp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100%;
+  padding: clamp(56px, 24vh, 240px) 24px 72px;
+}
+
+/* The greeting sits above the clock without pushing the rest of the page down. */
+.ntp:has(> .ntp-greeting) {
+  padding-top: max(32px, calc(clamp(56px, 24vh, 240px) - 38px));
+}
+
+.ntp-undo-slot.empty {
+  display: none;
+}
+
+/* Centred in the page area both ways (the regular page is anchored from the top instead). */
+.ntp.private {
+  justify-content: center;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.ntp.private h1 {
+  margin: 18px 0 10px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.ntp.private p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 13.5px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.ntp.private .private-note {
+  margin-top: 14px;
+  color: var(--text-3);
+  font-size: 12.5px;
+}
+
+.private-mark {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--hover);
+  color: var(--text);
+}
+
+/* A dark (or light) backdrop brings its own colour scheme: text and tiles stay legible in any theme. */
+.ntp-page[data-contrast='dark'] {
+  color-scheme: dark;
+}
+
+.ntp-page[data-contrast='light'] {
+  color-scheme: light;
+}
+
+.ntp-page[data-backdrop='image'] .ntp-clock,
+.ntp-page[data-backdrop='image'] .ntp-greeting,
+.ntp-page[data-backdrop='image'] .ntp-date {
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.45);
+}
+
+.ntp-greeting {
+  margin-bottom: 10px;
+  color: var(--text-2);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 28px;
+  letter-spacing: -0.2px;
+}
+
+.ntp-clock {
+  font-family: var(--font-display);
+  font-size: 76px;
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -2px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.ntp-date {
+  margin-top: 12px;
+  color: var(--text-2);
+  font-size: 13px;
+  letter-spacing: 0.4px;
+}
+
+/* Five per row; a partial last row stays centred. */
+.ntp-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: calc(5 * 112px + 4 * 8px);
+  margin-top: 40px;
+}
+
+.ntp-tile-wrap {
+  position: relative;
+  width: 112px;
+}
+
+.ntp-tile {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 8px 12px;
+  border-radius: 14px;
+  color: var(--text);
+  transition:
+    background-color var(--t-fast) linear,
+    transform var(--t-med) var(--ease-out);
+}
+
+.ntp-tile:hover {
+  background: var(--hover);
+}
+
+.ntp-tile:active {
+  transform: scale(0.97);
+}
+
+.ntp-tile-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  box-shadow: var(--card-shadow);
+}
+
+.ntp-tile-icon img {
+  width: 24px;
+  height: 24px;
+}
+
+.ntp-tile-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.ntp-tile-initial {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+/* "Add shortcut": the same tile, drawn as an empty slot. */
+.ntp-tile.add {
+  color: var(--text-2);
+}
+
+.ntp-tile.add .ntp-tile-icon {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--text-3) 55%, transparent);
+  background: transparent;
+  box-shadow: none;
+  transition:
+    border-color var(--t-fast) linear,
+    color var(--t-fast) linear;
+}
+
+.ntp-tile.add:hover {
+  color: var(--text);
+}
+
+.ntp-tile.add:hover .ntp-tile-icon {
+  border-color: var(--text-3);
+}
+
+.ntp-tile-remove {
+  position: absolute;
+  top: 6px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--divider);
+  background: var(--surface);
+  color: var(--text-2);
+  box-shadow: var(--card-shadow);
+  opacity: 0;
+  transform: scale(0.85);
+  transition:
+    opacity var(--t-fast) var(--ease-out),
+    transform var(--t-fast) var(--ease-out),
+    background-color var(--t-fast) linear,
+    color var(--t-fast) linear;
+}
+
+.ntp-tile-wrap:hover .ntp-tile-remove,
+.ntp-tile-wrap:focus-within .ntp-tile-remove {
+  opacity: 1;
+  transform: none;
+}
+
+.ntp-tile-remove:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.ntp-tile-remove:active {
+  transform: scale(0.92);
+}
+
+.ntp-undo-slot {
+  display: flex;
+  justify-content: center;
+  min-height: 40px;
+  margin-top: 20px;
+}
+
+.ntp-undo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 4px 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--divider);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+  font-size: 12.5px;
+  color: var(--text-2);
+  animation: dialog-in 160ms var(--ease-out);
+}
+
+.ntp-undo-button {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 7px;
+  color: var(--accent);
+  font-weight: 600;
+  transition: background-color var(--t-fast) linear;
+}
+
+.ntp-undo-button:hover {
+  background: var(--accent-soft);
+}
+
+@media (max-width: 720px) {
+  .ntp-tiles {
+    max-width: calc(4 * 112px + 3 * 8px);
+  }
+}
+
+@media (max-width: 560px) {
+  .ntp-tiles {
+    max-width: calc(3 * 112px + 2 * 8px);
+  }
+}
+
+/* ─── Settings ───────────────────────────────────────────────────────────── */
+
+.settings {
+  display: flex;
+  /* Navigation and content stay together in the middle of wide windows instead of leaving the right half empty. */
+  justify-content: center;
+  min-height: 100%;
+}
+
+.settings-nav {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  width: 232px;
+  flex: none;
+  padding: 32px 12px 24px 20px;
+}
+
+.settings-nav h1 {
+  margin: 0 0 16px 12px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.settings-nav button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-2);
+  text-align: left;
+  transition:
+    background-color var(--t-fast) linear,
+    color var(--t-fast) linear;
+}
+
+.settings-nav button:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.settings-nav button[aria-current='page'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.settings-main {
+  flex: 1;
+  min-width: 0;
+  max-width: 760px;
+  padding: 32px 32px 64px 12px;
+}
+
+.settings-main h2 {
+  margin: 4px 0 16px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.engine-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px;
+  padding: 8px 20px 20px;
+}
+
+.choice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--divider);
+  text-align: left;
+  transition:
+    border-color var(--t-fast) linear,
+    background-color var(--t-fast) linear;
+}
+
+.choice-card:hover {
+  background: var(--surface-2);
+}
+
+.choice-card[aria-checked='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.choice-card strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.choice-card span {
+  color: var(--text-2);
+}
+
+.kbd-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.kbd-table td {
+  height: 40px;
+  padding: 0 20px;
+  border-top: 1px solid var(--divider);
+  font-size: 13px;
+}
+
+.kbd-table tr:first-child td {
+  border-top: 0;
+}
+
+.kbd-table td:last-child {
+  text-align: right;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 22px;
+  padding: 2px 6px;
+  margin-left: 4px;
+  border-radius: 5px;
+  border: 1px solid var(--divider);
+  border-bottom-width: 2px;
+  background: var(--surface-2);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  text-align: center;
+  color: var(--text-2);
+}
+
+.form-grid {
+  display: grid;
+  gap: 8px;
+  padding: 4px 20px 16px;
+  max-width: 420px;
+}
+
+.form-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.form-message.error {
+  color: var(--danger);
+}
+
+.form-message.success {
+  color: var(--success);
+}
+
+/* ─── History / downloads lists ──────────────────────────────────────────── */
+
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.list-toolbar .search-field {
+  flex: 1;
+}
+
+.day-heading {
+  margin: 24px 4px 8px;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.day-heading:first-child {
+  margin-top: 0;
+}
+
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 44px;
+  padding: 0 8px 0 16px;
+  border-radius: 10px;
+}
+
+.history-row:hover {
+  background: var(--hover);
+}
+
+.history-time {
+  width: 56px;
+  flex: none;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.history-title {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.history-host {
+  flex: 1 1 0;
+  min-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-3);
+}
+
+.row-action {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  color: var(--text-2);
+  opacity: 0;
+  transition:
+    opacity var(--t-fast) linear,
+    background-color var(--t-fast) linear;
+}
+
+.history-row:hover .row-action,
+.download-card:hover .row-action,
+.row-action:focus-visible {
+  opacity: 1;
+}
+
+.row-action:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.download-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+}
+
+.download-card + .download-card {
+  border-top: 1px solid var(--divider);
+}
+
+.download-card .file-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.download-card .download-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.download-card .download-url {
+  margin-top: 2px;
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.download-card .download-buttons {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+/* ─── Error / crash pages ────────────────────────────────────────────────── */
+
+.error-page {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100%;
+  padding: 12vh 32px 48px;
+}
+
+.error-body {
+  width: 100%;
+  max-width: 560px;
+}
+
+.error-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 24px;
+  border-radius: 16px;
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.error-icon.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.error-page h1 {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.error-page p {
+  margin: 0 0 8px;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.error-page ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.error-code {
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-3);
+  user-select: text;
+}
+
+.error-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.error-details {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* ─── Settings: rows that stack their control below the text ────────────── */
+
+.card-row.stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+/* ─── Settings: theme presets ────────────────────────────────────────────── */
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  padding: 10px 20px 16px;
+}
+
+.theme-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 8px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--divider);
+  text-align: left;
+  transition:
+    border-color var(--t-fast) linear,
+    box-shadow var(--t-fast) linear,
+    background-color var(--t-fast) linear;
+}
+
+.theme-card:hover {
+  background: var(--hover);
+}
+
+.theme-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.theme-card-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.theme-card-tag {
+  padding: 0 6px;
+  border-radius: 5px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.theme-card-hint {
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+/* A miniature window: tab strip, toolbar with address field, page with a few text lines. */
+.theme-preview {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 86px;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid rgba(128, 128, 128, 0.22);
+}
+
+.theme-preview-tab {
+  width: 44%;
+  height: 12px;
+  margin: 6px 0 0 8px;
+  border-radius: 5px 5px 0 0;
+}
+
+.theme-preview-toolbar {
+  display: flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 8px;
+}
+
+.theme-preview-field {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+}
+
+.theme-preview-page {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  padding: 9px 10px;
+}
+
+.theme-preview-page span {
+  height: 5px;
+  border-radius: 3px;
+}
+
+/* ─── Settings: New Tab fonts and backgrounds ────────────────────────────── */
+
+.font-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 10px;
+}
+
+.font-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--divider);
+  transition:
+    border-color var(--t-fast) linear,
+    background-color var(--t-fast) linear;
+}
+
+.font-card:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.font-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.font-card:disabled {
+  opacity: 0.5;
+}
+
+.font-card-sample {
+  font-size: 28px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.font-card-label {
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.ntp-swatch-groups {
+  display: grid;
+  gap: 12px;
+}
+
+.ntp-swatch-group {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+.ntp-swatch-caption {
+  color: var(--text-2);
+  font-size: 12.5px;
+}
+
+.ntp-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ntp-swatch {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 38px;
+  border-radius: 9px;
+  border: 1px solid var(--divider);
+  background: var(--page-bg);
+  color: var(--text-2);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  transition: box-shadow var(--t-fast) linear;
+}
+
+.ntp-swatch.selected {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--accent);
+}
+
+.ntp-image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.ntp-image-actions .inline-form {
+  flex: 1 1 260px;
+}
+
+.ntp-image-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ─── Settings: storage ─────────────────────────────────────────────────── */
+
+.storage-path {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  font: 12.5px var(--font-mono);
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+.storage-path.inline {
+  display: inline;
+  padding: 1px 5px;
+  border-radius: 5px;
+}
+
+.storage-notice {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: var(--warning-soft);
+}
+
+.storage-notice > svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--warning);
+}
+
+.storage-notice .hint {
+  line-height: 1.55;
+}
+
+.storage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.storage-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.storage-size {
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.storage-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 20px 16px;
+  list-style: none;
+}
+
+.storage-facts li {
+  display: flex;
+  gap: 10px;
+  color: var(--text-2);
+  line-height: 1.45;
+}
+
+.storage-facts li > :first-child {
+  flex: none;
+  margin-top: 1px;
+  color: var(--success);
+}
