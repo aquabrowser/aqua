@@ -22,7 +22,6 @@ From [Releases](https://github.com/aquabrowser/aqua/releases/latest):
 | File                        | Description                                                                |
 | --------------------------- | -------------------------------------------------------------------------- |
 | `Aqua-Browser-Setup.exe`    | Per-user installer. Profile in `%APPDATA%\aqua-browser`.                   |
-| `Aqua-Browser-Portable.zip` | Portable folder. Profile in `Aqua Browser\AquaData`.                       |
 | `Aqua-Browser-Portable.exe` | Single-file portable. Unpacks itself on every launch, so it starts slower. |
 
 Windows, x64. Tested on Windows 11.
