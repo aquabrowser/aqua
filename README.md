@@ -89,8 +89,6 @@ The [Release Build](.github/workflows/release.yml) workflow type-checks, runs th
 the installer and the portable `.exe`, and uploads them with `latest.yml` and the `.blockmap` to a
 draft release. Installed copies see the release once it is published. They read releases without
 a token, so updates reach users only while the repository is public.
-The portable folder (`Aqua-Browser-Portable.zip`) comes from `npm run dist:portable-folder` and is
-attached to the release by hand.
 
 ## Known limitations
 
