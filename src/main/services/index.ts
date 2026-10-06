@@ -37,9 +37,23 @@ export interface Services {
 }
 
 export const DATABASE_FILE = 'aqua.db'
+/** SQLite's name for a database that exists only in memory. */
+const MEMORY_DATABASE = ':memory:'
 
-export function createServices(dir: string, prompts: PromptHost, updater: UpdaterOptions): Services {
-  const db = new VaultDatabase(join(dir, DATABASE_FILE))
+export interface ServiceOptions {
+  /** A guest session: the vault lives in memory only and nothing it holds is ever written. */
+  ephemeral: boolean
+  /** Where the filter lists are kept: the data root, shared by every profile (public data). */
+  filtersRoot: string
+}
+
+export function createServices(
+  dir: string,
+  prompts: PromptHost,
+  updater: UpdaterOptions,
+  options: ServiceOptions = { ephemeral: false, filtersRoot: dir }
+): Services {
+  const db = new VaultDatabase(options.ephemeral ? MEMORY_DATABASE : join(dir, DATABASE_FILE))
   const settings = new SettingsService(db)
   const history = new HistoryService(db)
   const bookmarks = new BookmarksService(db)
@@ -66,7 +80,7 @@ export function createServices(dir: string, prompts: PromptHost, updater: Update
     deleteLegacyFiles(dir)
   }
 
-  vault = new VaultService(db, dir, migrateLegacy)
+  vault = new VaultService(db, dir, options.ephemeral ? () => undefined : migrateLegacy)
   return {
     db,
     settings,
@@ -77,7 +91,7 @@ export function createServices(dir: string, prompts: PromptHost, updater: Update
     permissions,
     protocolGrants,
     certificates: new CertificateService(),
-    contentBlocker: new ContentBlockerService(settings, dir),
+    contentBlocker: new ContentBlockerService(settings, options.filtersRoot),
     cookies: new CookieJar(db),
     siteStorage: new SiteStorageService(db),
     session,

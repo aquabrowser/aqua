@@ -5,6 +5,7 @@
  */
 
 import type { NtpBackground, NtpFont } from './ntp'
+import type { ProfileColor } from './profiles'
 
 export type Platform = 'win32' | 'darwin' | 'linux'
 
@@ -50,6 +51,8 @@ export interface BrowserSettings {
   blockerPausedSites: string[]
   /** Remove utm_*, fbclid, gclid … from links before they are opened. */
   stripTrackingParams: boolean
+  /** Screenshots, recordings and screen sharing show nothing where Aqua's windows are (Windows, macOS). */
+  hideFromCapture: boolean
   /**
    * WebRTC (calls) only through a proxy: never a direct UDP connection, so a call can't reveal the
    * real IP address around a proxy, but without one, calls can't connect. Off: calls use the default
@@ -162,6 +165,7 @@ export type CommandId =
   | 'tab.duplicate'
   | 'window.new'
   | 'window.new-private'
+  | 'window.new-guest'
   | 'window.close'
   | 'window.fullscreen'
   | 'nav.back'
@@ -184,6 +188,8 @@ export type CommandId =
   | 'open.history'
   | 'open.downloads'
   | 'open.settings'
+  | 'open.profiles'
+  | 'privacy.hide-from-capture'
   | 'vault.lock'
   | 'app.quit'
 
@@ -500,7 +506,7 @@ export interface ClearDataSummary {
  * (portable copies and development builds). Error details stay in the main process.
  */
 export type UpdateStatus =
-  | { state: 'disabled'; reason: 'portable' | 'development' }
+  | { state: 'disabled'; reason: 'portable' | 'development' | 'other-profile' }
   | { state: 'idle' }
   | { state: 'checking' }
   | { state: 'up-to-date'; checkedAt: number }
@@ -516,8 +522,30 @@ export interface AppVersions {
   v8: string
 }
 
+/** Who this Aqua process is (see main/lib/profiles.ts). */
+export interface ProfileIdentity {
+  kind: 'default' | 'profile' | 'guest'
+  /** The registry id; null for a guest session. */
+  id: string | null
+  name: string
+  color: ProfileColor
+  /** How many profiles exist (0 in a guest session, which is independent of them). */
+  profileCount: number
+}
+
+export interface ProfileSummary {
+  id: string
+  name: string
+  color: ProfileColor
+  /** The profile this window belongs to. */
+  current: boolean
+}
+
+export type ProfileResult = { ok: true; id: string } | { ok: false; error: string }
+
 export interface UiBootstrap {
   platform: Platform
+  profile: ProfileIdentity
   state: WindowState
   settings: BrowserSettings
   bookmarks: Bookmark[]
@@ -530,6 +558,7 @@ export interface UiBootstrap {
 export type ContextMenuRequest =
   | { kind: 'tab'; tabId: string }
   | { kind: 'tabstrip' }
+  | { kind: 'profiles' }
   | { kind: 'bookmark'; bookmarkId: string }
   | { kind: 'bookmarks-overflow'; bookmarkIds: string[]; x: number; y: number }
   | { kind: 'nav-history'; direction: 'back' | 'forward'; x: number; y: number }

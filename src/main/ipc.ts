@@ -38,6 +38,8 @@ import { showUiContextMenu } from './browser/menus'
 import type { Tab } from './browser/tab'
 import type { BrowserWindowController } from './browser/window-controller'
 import type { ProfileLocation } from './lib/profile-location'
+import { DEFAULT_PROFILE_ID } from './lib/profiles'
+import type { ProfileService } from './services/profiles'
 import { storageReport } from './services/storage-report'
 import { persistsStorage, sanitizeStorageItems, webOriginOf } from './lib/site-storage'
 import { ValidationError, arr, bool, int, num, obj, oneOf, optStr, str } from './lib/validate'
@@ -57,6 +59,8 @@ export interface IpcHost {
   browsingSession(): Session | null
   /** Where the profile lives (decided at start-up). */
   profileLocation: ProfileLocation
+  /** The profiles, and which one (or a guest session) this process runs. */
+  profiles: ProfileService
 }
 
 interface Ctx {
@@ -79,6 +83,7 @@ const COMMANDS: readonly CommandId[] = [
   'tab.duplicate',
   'window.new',
   'window.new-private',
+  'window.new-guest',
   'window.close',
   'window.fullscreen',
   'nav.back',
@@ -101,6 +106,8 @@ const COMMANDS: readonly CommandId[] = [
   'open.history',
   'open.downloads',
   'open.settings',
+  'open.profiles',
+  'privacy.hide-from-capture',
   'vault.lock',
   'app.quit'
 ]
@@ -132,7 +139,7 @@ const SITE_DATA_TYPES = [
 
 /** Channels that operate on browsing data and therefore require an unlocked vault. */
 const REQUIRES_UNLOCK =
-  /^(tabs|nav|omnibox|prompt|site|bookmarks|downloads|history|shortcuts|blocker|find|settings|ntp|storage|updater):/
+  /^(tabs|nav|omnibox|prompt|site|bookmarks|downloads|history|shortcuts|blocker|find|settings|ntp|storage|updater|profile-admin):/
 
 export function registerIpc(host: IpcHost): void {
   const { services } = host
@@ -200,6 +207,7 @@ export function registerIpc(host: IpcHost): void {
     const open = services.vault.isOpen()
     return {
       platform: process.platform === 'darwin' ? 'darwin' : process.platform === 'win32' ? 'win32' : 'linux',
+      profile: host.profiles.identity(),
       state: controller.state(),
       settings: services.settings.get(),
       bookmarks: open ? services.bookmarks.list() : [],
@@ -229,6 +237,9 @@ export function registerIpc(host: IpcHost): void {
         break
       case 'tabstrip':
         request = { kind: 'tabstrip' }
+        break
+      case 'profiles':
+        request = { kind: 'profiles' }
         break
       case 'bookmark':
         request = { kind: 'bookmark', bookmarkId: str(r.bookmarkId, 64) }
@@ -565,12 +576,52 @@ export function registerIpc(host: IpcHost): void {
 
   // ─── Storage ──────────────────────────────────────────────────────────────
 
-  handle('storage:info', () => storageReport(host.profileLocation))
+  handle('storage:info', () => storageReport(host.profileLocation, host.profiles.root))
   /** Opens one of two known folders in the file manager; never a path chosen by the caller. */
   handle('storage:open', async (_ctx, which) => {
-    const report = await storageReport(host.profileLocation)
+    const report = await storageReport(host.profileLocation, host.profiles.root)
     const target = oneOf(which, ['profile', 'other'] as const) === 'profile' ? report.path : report.otherProfile
     if (target) await shell.openPath(target)
+  })
+
+  // ─── Profiles ──────────────────────────────────────────────────────────────
+
+  const { profiles } = host
+  const profileId = (raw: unknown): string => {
+    const id = str(raw, 32)
+    if (!profiles.registry().profiles.some((p) => p.id === id)) throw new ValidationError('unknown profile')
+    return id
+  }
+  const profileFields = (raw: unknown): { name: unknown; color: unknown } => {
+    const r = obj(raw)
+    return { name: str(r.name, 200), color: str(r.color, 20) }
+  }
+  // A guest session is independent of the profiles: it can't list, open or change them.
+  const notGuest = (): void => {
+    if (profiles.isGuest) throw new ValidationError('not available in a guest session')
+  }
+
+  handle('profiles:list', () => profiles.list())
+  handle('profiles:open', ({ controller }, raw) => {
+    notGuest()
+    const id = profileId(raw)
+    if (id === profiles.identity().id) controller.window.focus()
+    else profiles.open(id === DEFAULT_PROFILE_ID ? { kind: 'default' } : { kind: 'profile', id })
+  })
+  handle('profiles:open-guest', ({ controller }) => controller.run('window.new-guest'))
+  handle('profile-admin:create', (_ctx, raw) => {
+    notGuest()
+    const { name, color } = profileFields(raw)
+    return profiles.create(name, color)
+  })
+  handle('profile-admin:update', (_ctx, rawId, raw) => {
+    notGuest()
+    const { name, color } = profileFields(raw)
+    return profiles.update(profileId(rawId), name, color)
+  })
+  handle('profile-admin:delete', (_ctx, rawId) => {
+    notGuest()
+    return profiles.remove(profileId(rawId))
   })
 
   // ─── Vault ─────────────────────────────────────────────────────────────────

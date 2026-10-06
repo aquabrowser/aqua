@@ -165,6 +165,26 @@
   white-space: nowrap;
 }
 
+/* The profile badge is a button (the profile switcher), so not part of the drag area. */
+.profile-badge {
+  -webkit-app-region: no-drag;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background-color var(--t-fast) linear;
+}
+
+.profile-badge:hover {
+  background: var(--pressed);
+}
+
+.profile-dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
 .tab {
   container: tab / inline-size;
   position: relative;

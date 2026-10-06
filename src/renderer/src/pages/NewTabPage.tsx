@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
-import { CircleAlert, Plus, VenetianMask, X } from 'lucide-react'
+import { CircleAlert, Plus, VenetianMask, X, UserRound } from 'lucide-react'
 import { greetingFor, NTP_FONTS, ntpBackdrop } from '@shared/ntp'
 import type { Shortcut } from '@shared/types'
 import { normalizeWebAddress } from '@shared/url'
@@ -7,7 +7,7 @@ import { Dialog } from '../components/Dialog'
 import { Icon } from '../components/Icon'
 import { cx } from '../lib/format'
 import { fontStyle } from '../lib/ntp'
-import { ntpImageStore, useSettings, useStore, wantNtpImage, windowStore } from '../store'
+import { ntpImageStore, useSettings, useStore, wantNtpImage, windowStore, isGuest } from '../store'
 
 /** Tiles the page shows at most; mirrors MAX_SHORTCUTS in the main process. */
 const MAX_SHORTCUTS = 10
@@ -42,7 +42,30 @@ function TileIcon({ site }: { site: Shortcut }) {
 
 export function NewTabPage() {
   const isPrivate = useStore(windowStore, (w) => w.private)
-  return isPrivate ? <PrivateNewTab /> : <RegularNewTab />
+  if (isPrivate) return <PrivateNewTab />
+  return isGuest() ? <GuestNewTab /> : <RegularNewTab />
+}
+
+/** What a guest session does and doesn't do. */
+function GuestNewTab() {
+  return (
+    <div className="page">
+      <div className="ntp private">
+        <span className="private-mark">
+          <Icon icon={UserRound} size={28} stroke={1.5} />
+        </span>
+        <h1>Guest window</h1>
+        <p>
+          Aqua keeps nothing from a guest session: the pages you visit, cookies and site data exist only in memory and
+          are gone when the last guest window closes. Aqua’s profiles stay locked and out of reach.
+        </p>
+        <p className="private-note">
+          Downloads go to your Downloads folder and stay there. Sites and your network can still see what you do. Ads
+          and trackers are blocked here too.
+        </p>
+      </div>
+    </div>
+  )
 }
 
 /** What a private window does and doesn't do - stated plainly, once. */

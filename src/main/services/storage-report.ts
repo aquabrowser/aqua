@@ -4,6 +4,7 @@ import { lstat, readdir } from 'fs/promises'
 import { dirname, join, relative, resolve } from 'path'
 import type { StorageInfo } from '../../shared/types'
 import type { ProfileLocation } from '../lib/profile-location'
+import { SHARED_ROOT_ENTRIES } from '../lib/profiles'
 
 const VAULT_FILES = new Set(['aqua.db', 'aqua.db-wal', 'aqua.db-shm', 'aqua.db-journal'])
 
@@ -37,18 +38,24 @@ async function sizesByEntry(dir: string): Promise<Map<string, number>> {
 
 const same = (a: string, b: string): boolean => relative(resolve(a), resolve(b)) === ''
 
-/** What Settings → Storage shows: facts about the folder in use, measured now. */
-export async function storageReport(location: ProfileLocation): Promise<StorageInfo> {
+/**
+ * What Settings → Storage shows: facts about this profile's folder, measured now. The filter lists
+ * are shared by every profile and live in the data root (`root`); the default profile's folder is
+ * the root itself, and the other profiles' folders in it are not counted as its own.
+ */
+export async function storageReport(location: ProfileLocation, root: string): Promise<StorageInfo> {
   const path = app.getPath('userData')
+  const isRoot = same(path, root)
   const sizes = await sizesByEntry(path)
   let vaultBytes = 0
-  let filterBytes = 0
   let otherBytes = 0
   for (const [name, bytes] of sizes) {
     if (VAULT_FILES.has(name)) vaultBytes += bytes
-    else if (name === 'filters') filterBytes += bytes
+    else if (name === 'filters' || (isRoot && SHARED_ROOT_ENTRIES.has(name))) continue
     else otherBytes += bytes
   }
+  let filterBytes = 0
+  for (const bytes of (await sizesByEntry(join(root, 'filters'))).values()) filterBytes += bytes
   // An installed Aqua's profile on this computer, when this copy keeps its data elsewhere.
   const installed = join(app.getPath('appData'), 'aqua-browser')
   const otherProfile =

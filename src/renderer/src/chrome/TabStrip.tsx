@@ -9,12 +9,13 @@ import {
   type DragEvent as ReactDragEvent,
   type PointerEvent as ReactPointerEvent
 } from 'react'
-import { Plus, VenetianMask } from 'lucide-react'
+import { Plus, UserRound, VenetianMask } from 'lucide-react'
+import { PROFILE_COLOR_VALUES } from '@shared/profiles'
 import type { TabState } from '@shared/types'
 import { droppedUrl } from '@shared/url'
 import { Icon } from '../components/Icon'
 import { cx } from '../lib/format'
-import { useStore, windowStore } from '../store'
+import { env, useStore, windowStore } from '../store'
 import { TabItem } from './TabItem'
 
 /** Slightly longer than the close transition, which then has always finished. */
@@ -472,13 +473,39 @@ export function TabStrip() {
       </button>
       <div className="tabstrip-spacer" />
       {dropX !== null && <div className="tab-drop-marker" style={{ left: dropX }} aria-hidden />}
-      {isPrivate && (
+      {isPrivate ? (
         <div className="private-badge" title="Private window: history, cookies and site data aren’t kept">
           <Icon icon={VenetianMask} size={15} stroke={1.6} />
           Private
         </div>
+      ) : (
+        <ProfileBadge />
       )}
     </div>
+  )
+}
+
+/**
+ * Which profile the window belongs to, once there is more than one (always in a guest session).
+ * A button: it opens the profile switcher.
+ */
+function ProfileBadge() {
+  const profile = env.profile
+  const guest = profile.kind === 'guest'
+  if (!guest && profile.profileCount < 2) return null
+  return (
+    <button
+      className={cx('private-badge', 'profile-badge')}
+      title={guest ? 'Guest window: nothing is kept after the last guest window closes' : `Profile: ${profile.name}`}
+      onClick={() => void window.aqua.ui.contextMenu({ kind: 'profiles' })}
+    >
+      {guest ? (
+        <Icon icon={UserRound} size={15} stroke={1.6} />
+      ) : (
+        <span className="profile-dot" style={{ background: PROFILE_COLOR_VALUES[profile.color] }} aria-hidden />
+      )}
+      {profile.name}
+    </button>
   )
 }
 

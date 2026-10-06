@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import type {
   AppVersions,
+  ProfileIdentity,
   Bookmark,
   BrowserSettings,
   ContentBlockerInfo,
@@ -88,10 +89,14 @@ export const sessionStart = Date.now()
 /** Id of the popup currently shown in the popup overlay layer (only one at a time). */
 export const popupStore = new Store<string | null>(null)
 
-export const env: { platform: Platform; versions: AppVersions } = {
+export const env: { platform: Platform; versions: AppVersions; profile: ProfileIdentity } = {
   platform: 'win32',
-  versions: { app: '', electron: '', chrome: '', node: '', v8: '' }
+  versions: { app: '', electron: '', chrome: '', node: '', v8: '' },
+  profile: { kind: 'default', id: 'default', name: 'Personal', color: 'blue', profileCount: 1 }
 }
+
+/** Fixed for the life of the window: a guest session has no vault password, profiles or lock. */
+export const isGuest = (): boolean => env.profile.kind === 'guest'
 
 export function useSettings(): BrowserSettings {
   const settings = useStore(settingsStore)
@@ -108,6 +113,7 @@ export async function bootstrapStores(): Promise<void> {
   const data = await aqua.ui.bootstrap()
   env.platform = data.platform
   env.versions = data.versions
+  env.profile = data.profile
   windowStore.set(data.state)
   settingsStore.set(data.settings)
   bookmarksStore.set(data.bookmarks)

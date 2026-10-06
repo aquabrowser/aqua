@@ -1,3 +1,4 @@
+import { DEFAULT_PROFILE_ID } from '../lib/profiles'
 import {
   clipboard,
   Menu,
@@ -272,6 +273,27 @@ export function showUiContextMenu(controller: BrowserWindowController, request: 
           click: () => controller.run('window.new-private')
         }
       ]
+      Menu.buildFromTemplate(menu).popup({ window })
+      return
+    }
+
+    // Switching profiles (lock screen, tab strip badge): each opens in its own window and process.
+    case 'profiles': {
+      const { profiles } = controller
+      const menu: MenuItemConstructorOptions[] = profiles.list().map((p) => ({
+        label: label(p.name),
+        type: 'checkbox',
+        checked: p.current,
+        click: () =>
+          p.current
+            ? controller.window.focus()
+            : profiles.open(p.id === DEFAULT_PROFILE_ID ? { kind: 'default' } : { kind: 'profile', id: p.id })
+      }))
+      if (menu.length > 0) menu.push(SEPARATOR)
+      menu.push({ label: 'Open guest window', click: () => controller.run('window.new-guest') })
+      if (!profiles.isGuest && controller.services.vault.isOpen()) {
+        menu.push({ label: 'Manage profiles…', click: () => controller.run('open.profiles') })
+      }
       Menu.buildFromTemplate(menu).popup({ window })
       return
     }

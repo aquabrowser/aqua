@@ -10,30 +10,46 @@ export function installPageProtections(
 ): void {
   type Method = (this: unknown, ...args: unknown[]) => unknown
 
-  /** Replaces `target[name]`, keeping its name, arity, property flags and a native-looking toString. */
+  // ── Native-looking replacements ────────────────────────────────────────
+  // What Aqua replaces must be indistinguishable from the browser's own functions: scripts that find
+  // tampered natives take the browser for an embedded or automated one (Google's sign-in then refuses
+  // it as "not secure"), and every difference is also a fingerprint. Replacements are proxies of the
+  // originals (same name, length, no prototype, not constructible), and Function.prototype.toString
+  // reports them, and itself, as native code.
+  const nativeNames = new WeakMap<object, string>()
+  const nativeToString = Function.prototype.toString
+  const toString = {
+    toString(this: unknown): string {
+      const name = (typeof this === 'function' && nativeNames.get(this)) || null
+      return name === null ? nativeToString.call(this) : `function ${name}() { [native code] }`
+    }
+  }.toString
+  nativeNames.set(toString, 'toString')
+  Object.defineProperty(Function.prototype, 'toString', {
+    value: toString,
+    writable: true,
+    enumerable: false,
+    configurable: true
+  })
+  /** A function created here that a browser implements natively (chrome.csi …). */
+  const native = <T extends object>(fn: T, name: string): T => {
+    nativeNames.set(fn, name)
+    return fn
+  }
+
+  /** Replaces `target[name]` with a proxy of it that runs `make(original)`, keeping its property flags. */
   const replace = (target: object | undefined, name: string, make: (original: Method) => Method): void => {
     if (!target) return
     const descriptor = Object.getOwnPropertyDescriptor(target, name)
     const original = descriptor?.value as Method | undefined
     if (typeof original !== 'function') return
     const impl = make(original)
-    const fn = {
-      [name](this: unknown, ...args: unknown[]) {
-        return impl.apply(this, args)
-      }
-    }[name]
-    const source = `function ${name}() { [native code] }`
-    Object.defineProperty(fn, 'length', { value: original.length })
-    Object.defineProperty(fn, 'toString', {
-      value: function toString() {
-        return source
-      },
-      writable: true,
-      configurable: true,
-      enumerable: false
+    const proxy = new Proxy(original, {
+      apply: (_target, thisArg, args: unknown[]) => impl.apply(thisArg, args)
     })
+    native(proxy, name)
     Object.defineProperty(target, name, {
-      value: fn,
+      value: proxy,
       writable: descriptor?.writable ?? true,
       enumerable: descriptor?.enumerable ?? true,
       configurable: true
@@ -205,6 +221,81 @@ export function installPageProtections(
         })
       }
   )
+
+  // ── window.chrome ──────────────────────────────────────────────────────
+  // Chromium (Chrome, Edge, Brave, plain Chromium builds) has chrome.app, chrome.csi and
+  // chrome.loadTimes on every page. Electron leaves window.chrome empty, and an empty one is how
+  // sites recognise an embedded browser. The values come from the page's own navigation timing.
+  const w = window as Window & { chrome?: Record<string, unknown> }
+  const chromeObject = w.chrome ?? {}
+  if (!w.chrome) {
+    Object.defineProperty(w, 'chrome', { value: chromeObject, writable: true, enumerable: true, configurable: false })
+  }
+  const navigation = (): PerformanceNavigationTiming | undefined =>
+    performance.getEntriesByType?.('navigation')[0] as PerformanceNavigationTiming | undefined
+  const epochSeconds = (ms: number): number => (performance.timeOrigin + ms) / 1000
+  const define = (target: object, name: string, value: unknown): void => {
+    if (!(name in target)) {
+      Object.defineProperty(target, name, { value, writable: true, enumerable: true, configurable: true })
+    }
+  }
+  const loadTimes = {
+    loadTimes() {
+      const n = navigation()
+      const paint = performance.getEntriesByName?.('first-paint')[0]?.startTime
+      const protocol = n?.nextHopProtocol ?? ''
+      const multiplexed = protocol === 'h2' || protocol === 'h3' || protocol.startsWith('quic')
+      return {
+        requestTime: epochSeconds(n?.requestStart ?? 0),
+        startLoadTime: epochSeconds(0),
+        commitLoadTime: epochSeconds(n?.responseStart ?? 0),
+        finishDocumentLoadTime: n?.domContentLoadedEventEnd ? epochSeconds(n.domContentLoadedEventEnd) : 0,
+        finishLoadTime: n?.loadEventEnd ? epochSeconds(n.loadEventEnd) : 0,
+        firstPaintTime: paint ? epochSeconds(paint) : 0,
+        firstPaintAfterLoadTime: 0,
+        navigationType: n?.type === 'reload' ? 'Reload' : n?.type === 'back_forward' ? 'BackForward' : 'Other',
+        wasFetchedViaSpdy: multiplexed,
+        wasNpnNegotiated: multiplexed,
+        npnNegotiatedProtocol: multiplexed ? protocol : 'unknown',
+        wasAlternateProtocolAvailable: false,
+        connectionInfo: protocol || 'http/1.1'
+      }
+    }
+  }.loadTimes
+  const csi = {
+    csi() {
+      const n = navigation()
+      return {
+        startE: Math.round(performance.timeOrigin),
+        onloadT: Math.round(performance.timeOrigin + (n?.domContentLoadedEventEnd || performance.now())),
+        pageT: performance.now(),
+        tran: n?.type === 'reload' ? 16 : n?.type === 'back_forward' ? 6 : 15
+      }
+    }
+  }.csi
+  define(chromeObject, 'loadTimes', native(loadTimes, 'loadTimes'))
+  define(chromeObject, 'csi', native(csi, 'csi'))
+  const app: Record<string, unknown> = {
+    isInstalled: false,
+    InstallState: { DISABLED: 'disabled', INSTALLED: 'installed', NOT_INSTALLED: 'not_installed' },
+    RunningState: { CANNOT_RUN: 'cannot_run', READY_TO_RUN: 'ready_to_run', RUNNING: 'running' }
+  }
+  const appMethods = {
+    getDetails() {
+      return null
+    },
+    getIsInstalled() {
+      return false
+    },
+    installState(callback?: unknown) {
+      if (typeof callback === 'function') setTimeout(() => (callback as (state: string) => void)('not_installed'), 0)
+    },
+    runningState() {
+      return 'cannot_run'
+    }
+  }
+  for (const [name, method] of Object.entries(appMethods)) define(app, name, native(method, name))
+  define(chromeObject, 'app', app)
 
   // ── Passkeys (WebAuthn) ────────────────────────────────────────────────
   // Conditional mediation ("passkey autofill") needs browser UI Aqua does not

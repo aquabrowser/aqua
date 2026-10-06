@@ -51,7 +51,8 @@
     ]
   },
   "portable": {
-    "artifactName": "Aqua-Browser-Portable.exe"
+    "artifactName": "Aqua-Browser-Portable.exe",
+    "unpackDirName": false
   },
   "nsis": {
     "oneClick": false,

@@ -1226,3 +1226,47 @@ kbd {
   margin-top: 1px;
   color: var(--success);
 }
+
+/* ─── Settings → Profiles ─────────────────────────────────────────────────── */
+
+.profile-dot.large {
+  width: 12px;
+  height: 12px;
+  margin: 0 4px 0 2px;
+}
+
+.profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profile-form {
+  display: grid;
+  gap: 12px;
+}
+
+.profile-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.profile-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profile-color {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  transition: box-shadow var(--t-fast) linear;
+}
+
+.profile-color.selected {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--text-2);
+}

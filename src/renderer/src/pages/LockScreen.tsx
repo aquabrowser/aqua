@@ -8,9 +8,10 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode
 } from 'react'
-import { ArrowBigUp, ArrowRight, CircleAlert, Eye, EyeOff } from 'lucide-react'
+import { ArrowBigUp, ArrowRight, CircleAlert, Eye, EyeOff, UserRound, Users } from 'lucide-react'
 import type { VaultStatus } from '@shared/types'
 import { AquaMark, Icon } from '../components/Icon'
+import { env } from '../store'
 import { cx } from '../lib/format'
 import { OnboardingSteps, WelcomeIntro } from './Onboarding'
 
@@ -152,7 +153,9 @@ export function LockScreen({ status, leaving }: { status: VaultStatus; leaving: 
   const mode: 'setup' | 'unlock' | 'upgrade' =
     status.state === 'setup' ? 'setup' : status.legacyUpgrade ? 'upgrade' : 'unlock'
   const setup = mode === 'setup'
-  const [step, setStep] = useState<'welcome' | 'password'>('welcome')
+  // A profile added to an Aqua already in use skips the welcome: it only needs its own password.
+  const addedProfile = env.profile.kind === 'profile'
+  const [step, setStep] = useState<'welcome' | 'password'>(addedProfile ? 'password' : 'welcome')
   const intro = setup && step === 'welcome'
 
   const [password, setPassword] = useState('')
@@ -243,10 +246,20 @@ export function LockScreen({ status, leaving }: { status: VaultStatus; leaving: 
 
   const onKeyEvent = (event: ReactKeyboardEvent): void => setCapsLock(event.getModifierState('CapsLock'))
 
-  const title = setup ? 'Create your vault' : mode === 'upgrade' ? 'Upgrade your vault' : 'Aqua is locked'
+  // With several profiles, the lock screen says which one this is.
+  const named = env.profile.profileCount > 1 ? env.profile.name : 'Aqua'
+  const title = setup
+    ? addedProfile
+      ? `Set up ${env.profile.name}`
+      : 'Create your vault'
+    : mode === 'upgrade'
+      ? 'Upgrade your vault'
+      : `${named} is locked`
   // Unlocking needs no explanation; first run and the one-time upgrade do.
   const subtitle = setup
-    ? 'Choose a master password to encrypt your profile on this device. It can’t be recovered if you forget it.'
+    ? addedProfile
+      ? `Choose a master password for ${env.profile.name}. It’s separate from your other profiles’ passwords and can’t be recovered if you forget it.`
+      : 'Choose a master password to encrypt your profile on this device. It can’t be recovered if you forget it.'
     : mode === 'upgrade'
       ? 'Aqua now encrypts your whole profile. Enter your current master password to upgrade it.'
       : null
@@ -347,7 +360,8 @@ export function LockScreen({ status, leaving }: { status: VaultStatus; leaving: 
                   )}
                 </div>
               </form>
-              {setup && (
+              {!setup && mode !== 'upgrade' && <OtherProfiles />}
+              {setup && !addedProfile && (
                 <div className="onboarding-footer">
                   <button className="lock-back" type="button" disabled={busy} onClick={() => setStep('welcome')}>
                     Back
@@ -359,6 +373,28 @@ export function LockScreen({ status, leaving }: { status: VaultStatus; leaving: 
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+/**
+ * Someone without this profile's password can still browse: as a guest (nothing is kept), or in
+ * another profile, with that profile's own password.
+ */
+function OtherProfiles() {
+  const several = env.profile.profileCount > 1
+  return (
+    <div className="lock-profiles">
+      <button
+        className="lock-switch"
+        type="button"
+        onClick={() =>
+          several ? void window.aqua.ui.contextMenu({ kind: 'profiles' }) : void window.aqua.profiles.openGuest()
+        }
+      >
+        <Icon icon={several ? Users : UserRound} size={14} stroke={1.7} />
+        {several ? 'Other profiles' : 'Browse as guest'}
+      </button>
     </div>
   )
 }

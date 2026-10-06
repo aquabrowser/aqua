@@ -1,6 +1,7 @@
 import type { Rectangle, Session } from 'electron'
 import type { BrowserWindowController } from './browser/window-controller'
 import type { Services } from './services'
+import type { ProfileService } from './services/profiles'
 import type { SessionWindow } from './services/session'
 
 export interface WindowOptions {
@@ -25,9 +26,13 @@ export interface AppContext {
   /** Isolated, cookie-less session used only by trusted browser UI. */
   readonly uiSession: Session
   readonly preloadPath: string
+  /** The profiles, and which one (or a guest session) this process runs. */
+  readonly profiles: ProfileService
   uiUrl(): string
   isQuitting(): boolean
   openWindow(options?: WindowOptions): BrowserWindowController
+  /** A guest window: a new window in a guest session, or the guest session's process started. */
+  openGuest(): void
   windows(): BrowserWindowController[]
   /** Something persisted in the session file changed. */
   sessionChanged(): void

@@ -285,6 +285,39 @@ test('replaced functions look native to the page', () => {
   assert.equal(String(p.window.alert), 'function alert() { [native code] }')
   assert.equal(p.window.alert.name, 'alert')
   assert.equal(String(p.credentials.get), 'function get() { [native code] }')
+  // The checks detection scripts use: toString borrowed from Function.prototype, own properties,
+  // and toString itself.
+  const toString = Function.prototype.toString
+  assert.equal(toString.call(p.window.alert), 'function alert() { [native code] }')
+  assert.equal(toString.call(p.clipboard.writeText), 'function writeText() { [native code] }')
+  assert.equal(toString.call(toString), 'function toString() { [native code] }')
+  assert.equal(Object.prototype.hasOwnProperty.call(p.window.alert, 'toString'), false)
+  assert.equal('prototype' in p.window.alert, false)
+  assert.throws(() => toString.call({}), TypeError)
+  // Ordinary functions still show their source.
+  assert.match(
+    toString.call(function sample() {}),
+    /^function sample\(\) \{\}$/
+  )
+})
+
+test('window.chrome has what every Chromium build has', () => {
+  const p = page()
+  const chrome = p.window.chrome as Record<string, unknown> & {
+    loadTimes(): Record<string, unknown>
+    csi(): Record<string, unknown>
+    app: Record<string, unknown> & { getIsInstalled(): boolean; runningState(): string }
+  }
+  assert.deepEqual(Object.keys(chrome), ['loadTimes', 'csi', 'app'])
+  assert.equal(Function.prototype.toString.call(chrome.loadTimes), 'function loadTimes() { [native code] }')
+  const times = chrome.loadTimes()
+  assert.equal(typeof times.startLoadTime, 'number')
+  assert.equal(times.navigationType, 'Other')
+  assert.equal(chrome.csi().tran, 15)
+  assert.equal(chrome.app.isInstalled, false)
+  assert.equal(chrome.app.getIsInstalled(), false)
+  assert.equal(chrome.app.runningState(), 'cannot_run')
+  assert.equal(String(chrome.app.getDetails), 'function getDetails() { [native code] }')
 })
 
 // ─── Rich clipboard writes ──────────────────────────────────────────────────

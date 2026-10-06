@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   ToggleRight,
+  Users,
   X,
   type LucideIcon
 } from 'lucide-react'
@@ -38,14 +39,24 @@ import { Dialog } from '../components/Dialog'
 import { AquaMark, Icon } from '../components/Icon'
 import { WipeDialog } from '../components/WipeDialog'
 import { cx, formatAgo, formatBytes } from '../lib/format'
-import { blockerStore, env, useSettings, useStore, windowStore } from '../store'
+import { blockerStore, env, useSettings, useStore, windowStore, isGuest } from '../store'
 import { AppearanceSection } from './settings/AppearanceSection'
 import { FormMessage, plural, RadioList, Row, Switch, update } from './settings/controls'
 import { NewTabSection } from './settings/NewTabSection'
+import { ProfilesSection } from './settings/ProfilesSection'
 import { StorageSection } from './settings/StorageSection'
 
 type SectionId =
-  'general' | 'appearance' | 'newtab' | 'privacy' | 'permissions' | 'security' | 'storage' | 'shortcuts' | 'about'
+  | 'general'
+  | 'appearance'
+  | 'newtab'
+  | 'privacy'
+  | 'permissions'
+  | 'security'
+  | 'profiles'
+  | 'storage'
+  | 'shortcuts'
+  | 'about'
 
 const SECTIONS: Array<{ id: SectionId; label: string; icon: LucideIcon }> = [
   { id: 'general', label: 'General', icon: SlidersHorizontal },
@@ -54,10 +65,16 @@ const SECTIONS: Array<{ id: SectionId; label: string; icon: LucideIcon }> = [
   { id: 'privacy', label: 'Privacy', icon: ShieldCheck },
   { id: 'permissions', label: 'Site permissions', icon: ToggleRight },
   { id: 'security', label: 'Vault & security', icon: KeyRound },
+  { id: 'profiles', label: 'Profiles', icon: Users },
   { id: 'storage', label: 'Storage', icon: HardDrive },
   { id: 'shortcuts', label: 'Keyboard shortcuts', icon: Keyboard },
   { id: 'about', label: 'About Aqua', icon: Info }
 ]
+
+/** A guest session has no vault password, keeps nothing on disk and is independent of the profiles. */
+const GUEST_HIDDEN: ReadonlySet<SectionId> = new Set(['security', 'profiles', 'storage'])
+const sectionsFor = (guest: boolean): typeof SECTIONS =>
+  guest ? SECTIONS.filter((s) => !GUEST_HIDDEN.has(s.id)) : SECTIONS
 
 const MIN_PASSWORD = 8
 const MAX_STARTUP_PAGES = 20
@@ -65,7 +82,8 @@ const MAX_STARTUP_PAGES = 20
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export function SettingsPage({ section }: { section: string }) {
-  const fromUrl = (SECTIONS.find((s) => s.id === section)?.id ?? 'general') as SectionId
+  const sections = sectionsFor(isGuest())
+  const fromUrl = (sections.find((s) => s.id === section)?.id ?? 'general') as SectionId
   const [active, setActive] = useState<SectionId>(fromUrl)
   // Back/forward between settings sections updates the URL; follow it.
   useEffect(() => setActive(fromUrl), [fromUrl])
@@ -81,7 +99,7 @@ export function SettingsPage({ section }: { section: string }) {
       <div className="settings">
         <nav className="settings-nav" aria-label="Settings sections">
           <h1>Settings</h1>
-          {SECTIONS.map((s) => (
+          {sections.map((s) => (
             <button key={s.id} aria-current={active === s.id ? 'page' : undefined} onClick={() => go(s.id)}>
               <Icon icon={s.icon} />
               {s.label}
@@ -98,6 +116,7 @@ export function SettingsPage({ section }: { section: string }) {
           {active === 'privacy' && <PrivacySection />}
           {active === 'permissions' && <PermissionsSection />}
           {active === 'security' && <SecuritySection />}
+          {active === 'profiles' && <ProfilesSection />}
           {active === 'storage' && <StorageSection />}
           {active === 'shortcuts' && <ShortcutsSection />}
           {active === 'about' && <AboutSection updates={updates} />}
@@ -409,6 +428,20 @@ function PrivacySection() {
             label="Strip tracking parameters"
             checked={s.stripTrackingParams}
             onChange={(v) => update({ stripTrackingParams: v })}
+          />
+        </Row>
+      </div>
+
+      <div className="card">
+        <div className="card-title">Screen capture</div>
+        <Row
+          label="Hide from screen capture"
+          hint="Screenshots, recordings, OBS and screen sharing in apps like Discord show nothing where Aqua’s windows are. Menus and file dialogs can still appear."
+        >
+          <Switch
+            label="Hide from screen capture"
+            checked={s.hideFromCapture}
+            onChange={(v) => update({ hideFromCapture: v })}
           />
         </Row>
       </div>
@@ -864,6 +897,8 @@ function UpdateRow({ status }: { status: UpdateStatus | null }) {
             Open Releases
           </button>
         </Row>
+      ) : status.reason === 'other-profile' ? (
+        <Row label="Updates" hint="Updates are installed from your default profile’s windows." />
       ) : (
         <Row label="Updates" hint="Off in development builds." />
       )

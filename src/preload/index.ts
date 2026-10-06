@@ -119,6 +119,14 @@ const api: AquaApi = {
     info: () => invoke('storage:info'),
     open: (which) => invoke('storage:open', which)
   },
+  profiles: {
+    list: () => invoke('profiles:list'),
+    open: (id) => invoke('profiles:open', id),
+    openGuest: () => invoke('profiles:open-guest'),
+    create: (profile) => invoke('profile-admin:create', profile),
+    update: (id, profile) => invoke('profile-admin:update', id, profile),
+    remove: (id) => invoke('profile-admin:delete', id)
+  },
   blocker: {
     info: () => invoke('blocker:info'),
     setPaused: (tabId, paused) => invoke('blocker:set-paused', tabId, paused),

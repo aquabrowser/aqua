@@ -20,7 +20,7 @@
     "preview": "electron-vite preview",
     "start": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
-    "test": "node --test --experimental-transform-types --import ./src/test/resolve-ts.mjs --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning src/test/omnibox.test.ts src/test/tracking.test.ts src/test/page-protections.test.ts src/test/cookies.test.ts src/test/site-storage.test.ts src/test/blocker.test.ts src/test/download-gate.test.ts src/test/browser-ui.test.ts src/test/profile-and-ntp.test.ts src/test/settings.test.ts src/test/history-ids.test.ts src/test/vault-lock.test.ts src/test/error-log.test.ts",
+    "test": "node --test --experimental-transform-types --import ./src/test/resolve-ts.mjs --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning src/test/omnibox.test.ts src/test/tracking.test.ts src/test/page-protections.test.ts src/test/cookies.test.ts src/test/site-storage.test.ts src/test/blocker.test.ts src/test/download-gate.test.ts src/test/browser-ui.test.ts src/test/profile-and-ntp.test.ts src/test/settings.test.ts src/test/history-ids.test.ts src/test/vault-lock.test.ts src/test/error-log.test.ts src/test/profiles.test.ts",
     "fetch:filters": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/fetch-filters.mjs",
     "format": "prettier --write src scripts",
     "format:check": "prettier --check src scripts",

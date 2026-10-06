@@ -3,6 +3,7 @@ import { existsSync, readdirSync, rmSync, writeFileSync } from 'fs'
 import { homedir } from 'os'
 import { dirname, join, resolve } from 'path'
 import type { VaultResult, VaultStatus } from '../../shared/types'
+import { SHARED_ROOT_ENTRIES } from '../lib/profiles'
 import { Signal } from '../lib/signal'
 import { DecryptionError, randomKey, seal, unseal } from '../storage/crypto'
 import type { VaultDatabase } from '../storage/database'
@@ -46,6 +47,7 @@ export class VaultService {
   private isUnlocked = false
   private openedOnce = false
   private busy = false
+  private ephemeral = false
 
   constructor(
     private readonly db: VaultDatabase,
@@ -64,6 +66,19 @@ export class VaultService {
 
   isOpen(): boolean {
     return this.isUnlocked
+  }
+
+  /**
+   * A guest session: the database is in memory, unlocked with a random key that is never stored
+   * or derived from a password. There is nothing to lock, change or wipe; it ends with the process.
+   */
+  openEphemeral(): void {
+    if (this.isUnlocked || this.db.file !== ':memory:') return
+    const key = randomKey()
+    this.ephemeral = true
+    this.db.unlock(key)
+    key.fill(0)
+    this.open()
   }
 
   /** First run: create the vault. */
@@ -109,7 +124,7 @@ export class VaultService {
   }
 
   lock(): void {
-    if (!this.isUnlocked) return
+    if (!this.isUnlocked || this.ephemeral) return
     this.isUnlocked = false
     // Pending writes are sealed, then the data key is zeroed; unlocking unwraps it again.
     this.db.lock()
@@ -117,6 +132,7 @@ export class VaultService {
   }
 
   async changePassword(current: string, next: string): Promise<VaultResult> {
+    if (this.ephemeral) return { success: false, error: 'A guest session has no master password.' }
     const problem = passwordProblem(next)
     if (problem) return { success: false, error: problem }
     return this.exclusive(async () => {
@@ -146,6 +162,7 @@ export class VaultService {
    * so deletion happens at the start of the next launch (see `performPendingWipe`).
    */
   wipe(confirmation: string): VaultResult {
+    if (this.ephemeral) return { success: false, error: 'A guest session keeps nothing to wipe.' }
     if (confirmation !== WIPE_CONFIRMATION) return { success: false, error: `Type ${WIPE_CONFIRMATION} to confirm.` }
     writeFileSync(join(this.dir, WIPE_MARKER), new Date().toISOString())
     app.relaunch()
@@ -250,7 +267,8 @@ export function performPendingWipe(dir: string): boolean {
     return false
   }
   for (const entry of readdirSync(target)) {
-    if (entry === WIPE_MARKER) continue
+    // The default profile's folder also holds the other profiles: wiping it leaves them alone.
+    if (entry === WIPE_MARKER || SHARED_ROOT_ENTRIES.has(entry)) continue
     try {
       rmSync(join(target, entry), { recursive: true, force: true, maxRetries: 3 })
     } catch (err) {

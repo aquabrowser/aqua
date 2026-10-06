@@ -1207,6 +1207,29 @@
   margin-top: 0;
 }
 
+/* Other profiles / guest, under the unlock form. */
+.lock-profiles {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.lock-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: var(--text-2);
+  font-size: 12.5px;
+  transition: background-color var(--t-fast) linear;
+}
+
+.lock-switch:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
 .lock-back {
   position: absolute;
   left: 0;

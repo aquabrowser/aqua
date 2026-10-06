@@ -40,6 +40,13 @@ Windows, x64. Tested on Windows 11.
   to the default route; pop-ups without a click blocked; clipboard and passkey requests need a
   user gesture.
 - **Private windows**, each in its own in-memory partition, cleared on close.
+- **Profiles**, each with its own master password and encrypted vault, in its own process: no
+  cookies, history or memory are shared. Switch from the lock screen, the profile badge in the tab
+  strip or Settings → Profiles.
+- **Guest windows** need no password and keep nothing: their vault exists only in memory and is
+  gone when the last guest window closes. Your profiles stay locked.
+- **Hide from screen capture** (Settings → Privacy, or the ⋮ menu): screenshots, recordings, OBS
+  and screen sharing in Discord or Teams show nothing where Aqua's windows are.
 - **Updates** from GitHub Releases for installed copies: downloaded in the background, installed
   when Aqua exits or with Settings → About → Restart to update. Portable copies are replaced by hand.
 - **No telemetry.** On its own, Aqua contacts only filter list mirrors (every four days), GitHub
@@ -107,8 +114,16 @@ a token, so updates reach users only while the repository is public.
 - Compared with uBlock Origin: no element picker, logger or dynamic filtering, no `$popup`
   filters, no procedural cosmetic filters (`:has-text()`, `:upward()` …) and no HTML filtering
   (`##^`).
-- The single-file portable build unpacks itself to `%TEMP%` on every launch (about 10 s) and its
-  launcher is a 32-bit process. The portable folder build starts in under a second.
+- The single-file portable build unpacks itself to `%TEMP%` on every launch (about 10 s), also
+  for each profile or guest session it opens, and its launcher is a 32-bit process. The portable
+  folder build starts in under a second.
+- Hiding from screen capture covers Aqua's windows. Native menus, tooltips and file dialogs are
+  separate windows and can still appear. It needs Windows 10 version 2004 or later; earlier
+  versions capture a black window instead.
+- Profile names and colours are stored unencrypted in `profiles.json`, so a locked window can list
+  them. A renamed profile shows its new name in open windows after a restart.
+- A guest session's folder (`Guest`) keeps Chromium's own working files (no pages, cookies or
+  history) until the next guest session empties it.
 
 Design decisions with side effects are listed in [architecture.md](docs/architecture.md#design-decisions).
 

@@ -55,7 +55,16 @@ export function App() {
     else if (settings.theme === 'system') delete root.dataset.theme
     else root.dataset.theme = settings.theme
     root.toggleAttribute('data-private', isPrivate)
-    document.title = isPrivate ? 'Aqua (Private)' : 'Aqua'
+    // What the taskbar and Alt+Tab show (the window takes its title from this page).
+    const profile = env.profile
+    const label = isPrivate
+      ? 'Private'
+      : profile.kind === 'guest'
+        ? 'Guest'
+        : profile.kind === 'profile'
+          ? profile.name
+          : null
+    document.title = label ? `Aqua (${label})` : 'Aqua'
     if (settings.darkStyle === 'classic') delete root.dataset.dark
     else root.dataset.dark = settings.darkStyle
     root.classList.toggle('window-inactive', !focused)

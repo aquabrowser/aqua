@@ -8,7 +8,7 @@ const FIRST_CHECK_DELAY_MS = 15_000
 
 export interface UpdaterOptions {
   /** Why this copy doesn't update itself, or null when it does (packaged and installed). */
-  disabledReason: 'portable' | 'development' | null
+  disabledReason: 'portable' | 'development' | 'other-profile' | null
   /** Development only: an `app-update.yml`-style file to test against (AQUA_UPDATE_CONFIG). */
   devConfigPath?: string
 }

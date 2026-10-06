@@ -20,10 +20,12 @@ import { BrowserWindowController } from './browser/window-controller'
 import { registerIpc } from './ipc'
 import { appendErrorLog, formatErrorEntry, redactForLog } from './lib/error-log'
 import { resolveProfileLocation } from './lib/profile-location'
+import { GUEST_SWITCH, roleDir, roleFromArgs } from './lib/profiles'
 import { mark } from './lib/startup-trace'
 import { installInternalProtocol, installUiProtocol, registerSchemes, UI_HOST, UI_SCHEME } from './protocols'
 import { createServices, flushAll, type Services } from './services'
 import { migrateLegacyProfile, removeDefaultSessionLeftovers } from './services/legacy-profile'
+import { emptyFolder, ProfileService, readRegistry } from './services/profiles'
 import { fitToDisplays } from './services/session'
 import type { UpdaterOptions } from './services/updater'
 import { performPendingWipe } from './services/vault'
@@ -71,7 +73,22 @@ const profileLocation = resolveProfileLocation({
   },
   isWritable: writableFolder
 })
-if (profileLocation.path) app.setPath('userData', profileLocation.path)
+// Profiles (lib/profiles.ts): the data root is the default profile's folder; other profiles and the
+// guest session run in processes of their own, each with a folder under it. Decided before anything
+// (Chromium included) opens a profile folder.
+const dataRoot = profileLocation.path ?? app.getPath('userData')
+const profiles = new ProfileService(dataRoot, roleFromArgs(process.argv, readRegistry(dataRoot)))
+const userDataDir = roleDir(dataRoot, profiles.role)
+if (profiles.role.kind !== 'default') {
+  try {
+    mkdirSync(userDataDir, { recursive: true })
+  } catch {
+    // A read-only drive: Chromium reports it as for the default profile.
+  }
+}
+app.setPath('userData', userDataDir)
+// A guest session keeps nothing, not even compiled GPU shaders.
+if (profiles.isGuest) app.commandLine.appendSwitch('disable-gpu-shader-disk-cache')
 // Development only: where an isolated test profile saves downloads. Normalised: Chromium fails every
 // download when the downloads folder is set with forward slashes.
 if (!app.isPackaged && process.env['AQUA_DOWNLOADS_DIR'])
@@ -88,7 +105,9 @@ function updaterOptions(): UpdaterOptions {
   if (devConfig) return { disabledReason: null, devConfigPath: resolve(devConfig) }
   if (!app.isPackaged) return { disabledReason: 'development' }
   const installed = existsSync(join(dirname(app.getPath('exe')), 'Uninstall Aqua Browser.exe'))
-  return { disabledReason: installed ? null : 'portable' }
+  if (!installed) return { disabledReason: 'portable' }
+  // One process downloads and installs updates: the default profile's.
+  return { disabledReason: profiles.role.kind === 'default' ? null : 'other-profile' }
 }
 
 /**
@@ -124,6 +143,7 @@ class AquaApp implements AppContext {
   readonly services: Services
   readonly uiSession: Session
   readonly preloadPath = join(__dirname, '../preload/index.js')
+  readonly profiles = profiles
   /** Page protections for every frame of the browsing session (see preload/tab.ts). */
   private readonly tabPreloadPath = join(__dirname, '../preload/tab.js')
 
@@ -151,7 +171,8 @@ class AquaApp implements AppContext {
           return hit ? hit.controller.requestPrompt(hit.tab, request) : Promise.resolve(null)
         }
       },
-      updaterOptions()
+      updaterOptions(),
+      { ephemeral: profiles.isGuest, filtersRoot: dataRoot }
     )
   }
 
@@ -171,7 +192,8 @@ class AquaApp implements AppContext {
       windowForUi: (wc) => [...this.controllers].find((c) => c.window.webContents === wc) ?? null,
       tabForWebContents: (wc) => this.tabForWebContents(wc),
       browsingSession: () => this.regular,
-      profileLocation
+      profileLocation,
+      profiles
     })
     this.wireServices()
     this.installAutoLock()
@@ -197,9 +219,14 @@ class AquaApp implements AppContext {
       return hit ? hit.tab.gateDownload(filename) : true
     })
     services.vault.opened.on(() => void this.startBrowsing().then(() => this.openStartupTabs(first)))
+    // A guest session has no lock screen: its vault is a random key in memory.
+    if (profiles.isGuest) services.vault.openEphemeral()
 
     app.on('second-instance', (_e, argv) => {
-      if (!this.quitting) this.openUrls(urlsFromArgv(argv))
+      if (this.quitting) return
+      // "Open guest window" while the guest session runs: another window of it.
+      if (profiles.isGuest && argv.includes(GUEST_SWITCH)) this.openWindow()
+      else this.openUrls(urlsFromArgv(argv))
     })
     app.on('open-url', (event, url) => {
       event.preventDefault()
@@ -237,6 +264,11 @@ class AquaApp implements AppContext {
 
   windows(): BrowserWindowController[] {
     return [...this.controllers]
+  }
+
+  openGuest(): void {
+    if (profiles.isGuest) this.openWindow()
+    else profiles.open({ kind: 'guest' })
   }
 
   sessionChanged(): void {
@@ -463,6 +495,9 @@ class AquaApp implements AppContext {
       }
       // Pages stay hidden behind the first-run welcome until it is done (see syncViews).
       if (next.onboardingCompleted !== lastSettings.onboardingCompleted) this.controllers.forEach((c) => c.syncViews())
+      if (next.hideFromCapture !== lastSettings.hideFromCapture) {
+        this.controllers.forEach((c) => c.applyCaptureProtection())
+      }
       if (next.webrtcProxyOnly !== lastSettings.webrtcProxyOnly) {
         // Calls already connected keep their route; new connections follow the setting.
         const policy = webrtcPolicy(next)
@@ -630,8 +665,13 @@ function installErrorGuards(current: () => AquaApp | null): void {
 if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
+  // A guest session starts from an empty folder (only Chromium's own working files are ever in it).
+  if (profiles.isGuest) emptyFolder(app.getPath('userData'))
   // A wipe confirmed in the previous run is finished before anything opens the profile.
   if (performPendingWipe(app.getPath('userData'))) console.info('[vault] profile wiped')
+  // While this runs, its profile can't be deleted from another profile's settings.
+  profiles.markRunning(app.getPath('userData'))
+  process.on('exit', () => profiles.clearRunning(app.getPath('userData')))
   // Likewise, before Chromium opens (and later rewrites) them.
   removeDefaultSessionLeftovers(app.getPath('userData'))
   let aqua: AquaApp | null = null

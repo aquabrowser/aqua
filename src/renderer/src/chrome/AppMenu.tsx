@@ -10,12 +10,15 @@ import {
   LogOut,
   Maximize2,
   Minus,
+  MonitorOff,
   Plus,
   Printer,
   RotateCcw,
   Search,
   Settings,
   SquarePlus,
+  UserRound,
+  Users,
   type LucideIcon,
   VenetianMask
 } from 'lucide-react'
@@ -23,7 +26,7 @@ import type { CommandId, TabState } from '@shared/types'
 import { Icon } from '../components/Icon'
 import { Popup } from '../components/Popup'
 import { cx } from '../lib/format'
-import { useSettings, useStore, windowStore } from '../store'
+import { isGuest, useSettings, useStore, windowStore } from '../store'
 
 type MenuEntry =
   | {
@@ -54,6 +57,7 @@ export function AppMenu({
   const settings = useSettings()
   const canReopen = useStore(windowStore, (s) => s.canReopenClosedTab)
   const web = !!tab && /^(https?|file):/.test(tab.url) && !tab.error && !tab.crashed
+  const guest = isGuest()
 
   const entries = useMemo<MenuEntry[]>(
     () => [
@@ -74,6 +78,16 @@ export function AppMenu({
         kbd: k('Ctrl+Shift+N', '⇧⌘N'),
         command: 'window.new-private'
       },
+      {
+        type: 'item',
+        id: 'guest-window',
+        label: guest ? 'New guest window' : 'Open guest window',
+        icon: UserRound,
+        command: 'window.new-guest'
+      },
+      ...(guest
+        ? []
+        : [{ type: 'item', id: 'profiles', label: 'Profiles', icon: Users, command: 'open.profiles' } as const]),
       { type: 'separator', id: 's1' },
       { type: 'item', id: 'history', label: 'History', icon: History, kbd: k('Ctrl+H', '⌘Y'), command: 'open.history' },
       {
@@ -92,6 +106,14 @@ export function AppMenu({
         kbd: k('Ctrl+Shift+B', '⇧⌘B'),
         checked: settings.showBookmarksBar,
         command: 'bookmarks.toggle-bar'
+      },
+      {
+        type: 'item',
+        id: 'hide-from-capture',
+        label: 'Hide from screen capture',
+        icon: MonitorOff,
+        checked: settings.hideFromCapture,
+        command: 'privacy.hide-from-capture'
       },
       {
         type: 'item',
@@ -141,14 +163,18 @@ export function AppMenu({
         kbd: isMac ? '⌘,' : undefined,
         command: 'open.settings'
       },
-      {
-        type: 'item',
-        id: 'lock',
-        label: 'Lock Aqua',
-        icon: Lock,
-        kbd: k('Ctrl+Shift+L', '⇧⌘L'),
-        command: 'vault.lock'
-      },
+      ...(guest
+        ? []
+        : [
+            {
+              type: 'item',
+              id: 'lock',
+              label: 'Lock Aqua',
+              icon: Lock,
+              kbd: k('Ctrl+Shift+L', '⇧⌘L'),
+              command: 'vault.lock'
+            } as const
+          ]),
       { type: 'separator', id: 's5' },
       {
         type: 'item',
@@ -159,7 +185,7 @@ export function AppMenu({
         command: 'app.quit'
       }
     ],
-    [settings.showBookmarksBar, canReopen, web]
+    [settings.showBookmarksBar, settings.hideFromCapture, canReopen, web, guest]
   )
 
   const actionable = entries.filter((e): e is Extract<MenuEntry, { type: 'item' }> => e.type === 'item' && !e.disabled)

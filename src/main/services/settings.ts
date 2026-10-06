@@ -41,6 +41,7 @@ export const DEFAULT_SETTINGS: BrowserSettings = {
   blockerLists: { ads: true, privacy: true, cookies: false, annoyances: false },
   blockerPausedSites: [],
   stripTrackingParams: true,
+  hideFromCapture: false,
   webrtcProxyOnly: false,
   ntpShowClock: true,
   ntpGreeting: false,
@@ -57,7 +58,15 @@ export const DEFAULT_SETTINGS: BrowserSettings = {
 export interface UiHint {
   theme: ThemeMode
   darkStyle: DarkStyle
+  /** So the window is hidden from screen capture from launch, lock screen included. */
+  hideFromCapture?: boolean
 }
+
+const hintOf = (s: BrowserSettings): UiHint => ({
+  theme: s.theme,
+  darkStyle: s.darkStyle,
+  hideFromCapture: s.hideFromCapture
+})
 
 type Validators = { [K in keyof BrowserSettings]: (value: unknown) => value is BrowserSettings[K] }
 
@@ -115,6 +124,7 @@ const VALIDATORS: Validators = {
   blockerLists: isListGroups,
   blockerPausedSites: isHostList,
   stripTrackingParams: isBool,
+  hideFromCapture: isBool,
   webrtcProxyOnly: isBool,
   ntpShowClock: isBool,
   ntpGreeting: isBool,
@@ -175,6 +185,7 @@ export class SettingsService {
     if (hint && VALIDATORS.darkStyle(hint.darkStyle)) this.settings.darkStyle = hint.darkStyle
     // A hint written before dark styles existed.
     else if (hint && (hint as { oledBlack?: unknown }).oledBlack === true) this.settings.darkStyle = 'midnight'
+    if (hint && hint.hideFromCapture === true) this.settings.hideFromCapture = true
     db.unlocked.on(() => {
       this.settings = mergeStoredSettings(this.settings, db.readSettings())
       this.changed.emit(this.get())
@@ -201,9 +212,8 @@ export class SettingsService {
     if (Object.keys(changed).length === 0) return this.get()
     this.settings = next
     if (this.db.isUnlocked) this.db.writeSettings(changed)
-    if ('theme' in changed || 'darkStyle' in changed) {
-      this.db.setMeta('ui', { theme: next.theme, darkStyle: next.darkStyle } satisfies UiHint)
-    }
+    if ('theme' in changed || 'darkStyle' in changed || 'hideFromCapture' in changed)
+      this.db.setMeta('ui', hintOf(next))
     this.changed.emit(this.get())
     return this.get()
   }
@@ -213,7 +223,7 @@ export class SettingsService {
     const imported = sanitizeSettings(raw)
     this.settings = imported
     this.db.writeSettings(imported as unknown as Record<string, unknown>)
-    this.db.setMeta('ui', { theme: imported.theme, darkStyle: imported.darkStyle } satisfies UiHint)
+    this.db.setMeta('ui', hintOf(imported))
     this.changed.emit(this.get())
   }
 }

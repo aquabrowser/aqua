@@ -4,7 +4,7 @@ import type { TabState } from '@shared/types'
 import { Icon } from '../components/Icon'
 import { usePopup } from '../components/Popup'
 import { cx } from '../lib/format'
-import { downloadsStore, sessionStart, useStore } from '../store'
+import { downloadsStore, isGuest, sessionStart, useStore } from '../store'
 import { AppMenu } from './AppMenu'
 import { BlockerButton } from './BlockerButton'
 import { DownloadsFlyout } from './DownloadsFlyout'
@@ -180,14 +180,17 @@ export function Toolbar({ tab }: { tab: TabState | null }) {
       <div className="toolbar-group">
         <BlockerButton tab={tab} />
         <DownloadsButton />
-        <button
-          className="icon-button"
-          title={`Lock Aqua (${mod}Shift+L)`}
-          aria-label="Lock Aqua"
-          onClick={() => void window.aqua.vault.lock()}
-        >
-          <Icon icon={Lock} size={17} stroke={1.6} />
-        </button>
+        {/* A guest session has no vault password, so nothing to lock. */}
+        {!isGuest() && (
+          <button
+            className="icon-button"
+            title={`Lock Aqua (${mod}Shift+L)`}
+            aria-label="Lock Aqua"
+            onClick={() => void window.aqua.vault.lock()}
+          >
+            <Icon icon={Lock} size={17} stroke={1.6} />
+          </button>
+        )}
         <MenuButton tab={tab} />
       </div>
     </div>

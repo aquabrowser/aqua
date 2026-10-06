@@ -137,6 +137,35 @@ engine is cached (`filters/engine.bin`, keyed by engine version, configuration a
 size and date; ~40 ms to load instead of ~0.6 s to compile), and the blocker starts after the
 first window is on screen.
 
+## Profiles and guest sessions
+
+Each profile is a folder with its own vault (`aqua.db`, its own master password) and runs in a
+process of its own: Electron's single-instance lock belongs to the folder, so profiles share no
+memory, keys or browsing session. The default profile is the data root itself, so an existing
+installation keeps its data in place.
+
+| Path                   | What                                                                  |
+| ---------------------- | --------------------------------------------------------------------- |
+| `<root>`               | The default profile, and the filter lists every profile shares        |
+| `<root>\profiles.json` | Names and colours (unencrypted, so the lock screen can list them)     |
+| `<root>\Profiles\<id>` | Every other profile                                                   |
+| `<root>\Guest`         | Chromium's own working files of the guest session, emptied each start |
+
+`--aqua-profile=<id>` and `--aqua-guest` pick what a process runs (`lib/profiles.ts`); an unknown
+id opens the default profile. Opening a profile starts that process, or brings its window forward
+if it already runs. The single-file portable build starts its launcher instead of its own copy, so
+the new process gets an unpacked copy of its own (`unpackDirName: false` makes each launch's copy
+unique; with a fixed name, two launchers would delete each other's program files).
+
+A guest session's vault is an SQLite database in memory, unlocked with a random key that is never
+stored: it has no lock screen, nothing to lock or wipe, and history, cookies and site data vanish
+with the process. Its GPU shader cache is off.
+
+A profile that is open can't be deleted: its process writes `aqua.pid` into its folder, and the
+folder is renamed before it is removed (Windows refuses to rename a folder with open files). Wiping
+the default profile leaves `Profiles`, `Guest` and `profiles.json` alone. Only the default profile
+installs updates.
+
 ## Appearance and the New Tab page
 
 - **Theme presets** - Light, Classic dark, Midnight (pure black for OLED screens) and Slate
@@ -192,6 +221,15 @@ with the Ghostery adblocker engine instead, in every window, private ones includ
 - **Clipboard**: reads and writes need a click or keypress, clipboard-read needs a
   per-site permission and a focused page, and a page cannot swap the text a user copies: not
   in its copy handler, and not with `writeText` or `write` straight after the copy.
+- **Native-looking page surface**: what the page protections replace (dialogs, clipboard,
+  WebAuthn) are proxies of the originals, and `Function.prototype.toString` reports them as native
+  code. `window.chrome` has `app`, `csi` and `loadTimes`, as every Chromium build does (Electron
+  leaves it empty). Scripts that look for tampered natives or an empty `window.chrome` take a
+  browser for an embedded or automated one: Google's sign-in refuses those as "not secure". The
+  user agent and Client Hints are Chromium's own and are not altered.
+- **Screen capture**: Settings → Privacy → Hide from screen capture calls
+  `setContentProtection` (`WDA_EXCLUDEFROMCAPTURE`) on every window, from launch (the setting is
+  kept with the theme hint, so the lock screen is covered too).
 - **Passkeys**: conditional mediation ("passkey autofill") is reported unavailable, and
   WebAuthn requests are refused until the user has interacted with the page - no account
   picker on page load.

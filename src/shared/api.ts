@@ -4,6 +4,7 @@
  * per-method channel bindings - the renderer can never name an arbitrary
  * IPC channel.
  */
+import type { ProfileColor } from './profiles'
 import type {
   Bookmark,
   BrowserSettings,
@@ -29,6 +30,8 @@ import type {
   SiteInfo,
   SitePermission,
   StorageInfo,
+  ProfileResult,
+  ProfileSummary,
   SuggestResult,
   TopSite,
   UiBootstrap,
@@ -128,6 +131,14 @@ export interface AquaApi {
   storage: {
     info(): Promise<StorageInfo>
     open(which: 'profile' | 'other'): Promise<void>
+  }
+  profiles: {
+    list(): Promise<ProfileSummary[]>
+    open(id: string): Promise<void>
+    openGuest(): Promise<void>
+    create(profile: { name: string; color: ProfileColor }): Promise<ProfileResult>
+    update(id: string, profile: { name: string; color: ProfileColor }): Promise<ProfileResult>
+    remove(id: string): Promise<ProfileResult>
   }
   blocker: {
     info(): Promise<ContentBlockerInfo>

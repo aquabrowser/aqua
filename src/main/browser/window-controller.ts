@@ -17,6 +17,7 @@ import type {
   NavigateOptions,
   FindState,
   OverlayPlacement,
+  ProfileIdentity,
   OverlayRole,
   PromptRequest,
   PromptResponse,
@@ -27,6 +28,7 @@ import type { EventMap } from '../../shared/ipc'
 import { searchUrl } from '../../shared/search'
 import { internalPageOf, NEW_TAB_URL } from '../../shared/url'
 import { classifyInput } from '../omnibox/classify'
+import type { ProfileService } from '../services/profiles'
 import type { AppContext, WindowOptions } from '../app-context'
 import { Disposables, uid } from '../lib/signal'
 import type { Services } from '../services'
@@ -40,6 +42,13 @@ import { Tab, TAB_WEB_PREFERENCES, type OpenDisposition, type TabHost } from './
 
 /** Heights in DIP; multiples of 4 so every common scale factor lands on whole pixels. */
 export const TAB_STRIP_HEIGHT = 40
+
+/** "Aqua", or "Aqua (Private)", "Aqua (Guest)", "Aqua (Work)": what the taskbar and Alt+Tab show. */
+function windowTitle(isPrivate: boolean, identity: ProfileIdentity): string {
+  if (isPrivate) return 'Aqua (Private)'
+  if (identity.kind === 'guest') return 'Aqua (Guest)'
+  return identity.kind === 'profile' ? `Aqua (${identity.name})` : 'Aqua'
+}
 /** Width of the minimize / maximize / close buttons drawn by the title bar overlay. */
 const CAPTION_BUTTONS_WIDTH = 138
 const TOOLBAR_HEIGHT = 44
@@ -180,7 +189,7 @@ export class BrowserWindowController implements TabHost {
       minWidth: 480,
       minHeight: 320,
       show: false,
-      title: this.isPrivate ? 'Aqua (Private)' : 'Aqua',
+      title: windowTitle(this.isPrivate, appContext.profiles.identity()),
       ...(DEV_WINDOW_ICON ? { icon: DEV_WINDOW_ICON } : {}),
       backgroundColor: palette.frame,
       titleBarStyle: 'hidden',
@@ -200,6 +209,7 @@ export class BrowserWindowController implements TabHost {
     })
     this.id = this.window.id
 
+    this.applyCaptureProtection()
     this.installWindowEvents(geometry.maximized)
     this.installUiGuards()
 
@@ -619,6 +629,20 @@ export class BrowserWindowController implements TabHost {
     for (const role of OVERLAY_ROLES) this.applyOverlay(role)
   }
 
+  /**
+   * Settings → Privacy → Hide from screen capture: screenshots, recordings and screen sharing (OBS,
+   * Discord, Teams …) show nothing where this window is. Windows' WDA_EXCLUDEFROMCAPTURE
+   * (Windows 10 2004 and later; earlier versions capture a black window), macOS' sharingType none.
+   */
+  /** The profiles, and which one (or a guest session) this window belongs to. */
+  get profiles(): ProfileService {
+    return this.appContext.profiles
+  }
+
+  applyCaptureProtection(): void {
+    if (!this.destroyed) this.window.setContentProtection(this.services.settings.get().hideFromCapture)
+  }
+
   /** Re-applies the website appearance setting to every open page. */
   applyWebsiteAppearance(): void {
     const mode = this.services.settings.get().websiteAppearance
@@ -800,7 +824,13 @@ export class BrowserWindowController implements TabHost {
     const shortcut = resolveShortcut(input)
     if (!shortcut) return false
     const open = this.services.vault.isOpen()
-    const allowedWhileLocked: CommandId[] = ['window.close', 'window.fullscreen', 'app.quit', 'window.new']
+    const allowedWhileLocked: CommandId[] = [
+      'window.close',
+      'window.fullscreen',
+      'app.quit',
+      'window.new',
+      'window.new-guest'
+    ]
     // While locked, swallow browsing shortcuts but let Esc etc. reach the lock screen.
     if (!open && !allowedWhileLocked.includes(shortcut.command)) return !shortcut.passThrough
     if (shortcut.passThrough) {
@@ -847,6 +877,8 @@ export class BrowserWindowController implements TabHost {
       case 'window.new-private':
         this.appContext.openWindow({ private: true })
         return
+      case 'window.new-guest':
+        return this.appContext.openGuest()
       case 'window.close':
         return this.window.close()
       case 'window.fullscreen':
@@ -912,6 +944,14 @@ export class BrowserWindowController implements TabHost {
         return this.openInternal('aqua://downloads')
       case 'open.settings':
         return this.openInternal('aqua://settings')
+      case 'open.profiles':
+        if (this.appContext.profiles.isGuest) return
+        return this.openInternal('aqua://settings/profiles')
+      case 'privacy.hide-from-capture': {
+        const hide = !this.services.settings.get().hideFromCapture
+        this.services.settings.update({ hideFromCapture: hide })
+        return
+      }
       case 'vault.lock':
         return this.services.vault.lock()
       case 'app.quit':

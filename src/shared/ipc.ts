@@ -9,6 +9,7 @@
  * these maps, so a renamed channel or a changed payload fails to compile on
  * both sides instead of failing silently at runtime.
  */
+import type { ProfileColor } from './profiles'
 import type {
   Bookmark,
   BrowserSettings,
@@ -34,6 +35,8 @@ import type {
   SiteInfo,
   SitePermission,
   StorageInfo,
+  ProfileResult,
+  ProfileSummary,
   SuggestResult,
   TopSite,
   UiBootstrap,
@@ -107,6 +110,15 @@ export interface InvokeMap {
 
   'storage:info': () => StorageInfo
   'storage:open': (which: 'profile' | 'other') => void
+  /** Every profile, for the switcher (none in a guest session). Works while locked. */
+  'profiles:list': () => ProfileSummary[]
+  /** Opens a profile in its own process, or brings its window forward. Works while locked. */
+  'profiles:open': (id: string) => void
+  /** A guest window. Works while locked: a guest needs no master password. */
+  'profiles:open-guest': () => void
+  'profile-admin:create': (profile: { name: string; color: ProfileColor }) => ProfileResult
+  'profile-admin:update': (id: string, profile: { name: string; color: ProfileColor }) => ProfileResult
+  'profile-admin:delete': (id: string) => ProfileResult
 
   'vault:setup': (password: string) => VaultResult
   'vault:unlock': (password: string) => VaultResult
