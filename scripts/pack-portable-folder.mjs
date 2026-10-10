@@ -34,7 +34,7 @@ mkdirSync(join(folder, 'AquaData'), { recursive: true })
 copyFileSync(join(root, 'resources', 'portable', 'README.txt'), join(folder, 'AquaData', 'README.txt'))
 
 // Windows' own tar (bsdtar) writes zip files; the one Git Bash puts first on PATH does not.
-const tar = process.platform === 'win32' ? join(process.env.SystemRoot ?? 'C:\Windows', 'System32', 'tar.exe') : 'tar'
+const tar = process.platform === 'win32' ? join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'tar.exe') : 'tar'
 rmSync(zip, { force: true })
 const result = spawnSync(tar, ['-a', '-c', '-f', zip, '-C', out, 'Aqua Browser'], { stdio: 'inherit' })
 if (result.status !== 0) {

@@ -15,14 +15,42 @@ unwrapped with your master password (Argon2id, 128 MiB, 4 passes). Pages run in 
 sessions, so Chromium writes no cookie database or site storage to disk. Ads and trackers are
 blocked with uBlock Origin's filter lists.
 
+## Who it's for
+
+Aqua is for computers you share: a lab, a library, a hot desk, a family PC. On a shared machine
+every regular browser leaves the choice between staying signed in, where the next person at the
+keyboard has your sessions and history, and signing out, where you sign in again everywhere next
+time. Aqua keeps you signed in behind a lock. It locks with Ctrl+Shift+L, after an idle timeout and
+when Windows locks; the next person sees a password prompt.
+
+The portable build keeps its vault in an `AquaData` folder next to the program, so it can run from
+a USB drive and bring your sessions to any Windows PC.
+
+What Aqua protects against:
+
+- **Someone at the same PC** while you are away from it: a locked Aqua shows only the lock screen.
+- **Someone who copies the profile folder** or the USB drive: `aqua.db` is readable only with the
+  master password, and Argon2id makes each guess slow.
+- **Commodity infostealers that grab browser files.** They look for Chromium's cookie and login
+  databases, which Aqua never writes. A stealer that knows Aqua still gets only the vault.
+
+What it does not protect against:
+
+- Malware or a keylogger running **while you type the password or while Aqua is unlocked**: it can
+  read the password, the screen or the process memory.
+- An administrator of the PC, or anyone who can **replace the Aqua program** before you run it
+  (on a shared PC, run it from your own USB drive).
+- Monitoring of the network you are on: Aqua encrypts what is stored, not what is sent.
+
 ## Download
 
 From [Releases](https://github.com/aquabrowser/aqua/releases/latest):
 
-| File                        | Description                                                                |
-| --------------------------- | -------------------------------------------------------------------------- |
-| `Aqua-Browser-Setup.exe`    | Per-user installer. Profile in `%APPDATA%\aqua-browser`.                   |
-| `Aqua-Browser-Portable.exe` | Single-file portable. Unpacks itself on every launch, so it starts slower. |
+| File                        | Description                                                                             |
+| --------------------------- | --------------------------------------------------------------------------------------- |
+| `Aqua-Browser-Setup.exe`    | Per-user installer. Profile in `%APPDATA%\aqua-browser`.                                |
+| `Aqua-Browser-Portable.zip` | Portable folder, for a USB drive. Unzip and run `Aqua Browser.exe`; data in `AquaData`. |
+| `Aqua-Browser-Portable.exe` | Single-file portable. Unpacks itself on every launch, so it starts slower.              |
 
 Windows, x64. Tested on Windows 11.
 
@@ -93,8 +121,8 @@ git push origin v1.0.1
 ```
 
 The [Release Build](.github/workflows/release.yml) workflow type-checks, runs the tests, builds
-the installer and the portable `.exe`, and uploads them with `latest.yml` and the `.blockmap` to a
-draft release. Installed copies see the release once it is published. They read releases without
+the installer, the portable `.exe` and the portable folder `.zip`, and uploads them with
+`latest.yml` and the `.blockmap` to a draft release. Installed copies see the release once it is published. They read releases without
 a token, so updates reach users only while the repository is public.
 
 ## Known limitations

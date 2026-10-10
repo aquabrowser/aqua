@@ -39,7 +39,7 @@ Code: `src/main/storage/crypto.ts`, `src/main/storage/kdf.ts`, `src/main/storage
 - First-party localStorage is restored by the tab preload before page scripts run and sealed into the vault as it changes. Row ids are HMAC-SHA256 of the origin. Code: `src/main/services/site-storage.ts`.
 - Chromium's default (persistent) session refuses all web traffic.
 - On disk in the profile folder: `aqua.db`, the filter list cache, Chromium's GPU shader caches, `Local State` and the empty stores Chromium creates for the unused default session.
-- Outside the profile, installed copies only: a downloaded update's installer in `%LOCALAPPDATA%qua-browser-updater`, until it is installed.
+- Outside the profile, installed copies only: a downloaded update's installer in `%LOCALAPPDATA%\aqua-browser-updater`, until it is installed.
 - `logs/main.log` (and `main.old.log`, 512 KiB each at most), only if an error reaches the main process uncaught: its stack trace, with every address replaced by `<url>` and the home folder by `~`. Code: `src/main/lib/error-log.ts`.
 - Versions before in-memory browsing left visited hosts in the default session's `Network Persistent State`, `TransportSecurity` and `DIPS`. Aqua overwrites these with random bytes and deletes them at every start, before Chromium opens them. Code: `src/main/services/legacy-profile.ts`.
 - A packaged Aqua refuses to start with `--remote-debugging-port`, `--remote-debugging-pipe` or `--remote-debugging-address`. Electron fuses disable `ELECTRON_RUN_AS_NODE`, `NODE_OPTIONS` and `--inspect`.
@@ -74,7 +74,7 @@ No crash reports, usage statistics, search suggestions, Safe Browsing lookups or
 ## Updates
 
 - Installed copies update from [GitHub Releases](https://github.com/aquabrowser/aqua/releases) with electron-updater, through its own in-memory session (no cookies, nothing of the browsing sessions). Portable copies are replaced by hand. Code: `src/main/services/updater.ts`.
-- A new version downloads by itself to `%LOCALAPPDATA%qua-browser-updater` and installs silently when Aqua exits, or at once with Settings → About → Restart to update.
+- A new version downloads by itself to `%LOCALAPPDATA%\aqua-browser-updater` and installs silently when Aqua exits, or at once with Settings → About → Restart to update.
 - The download is checked against the SHA-512 in the release's `latest.yml`. Releases are not code-signed yet, so the installer's publisher is not verified: an update is as trustworthy as the GitHub release it comes from.
 
 ## Known limitations

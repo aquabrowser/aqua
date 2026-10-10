@@ -52,3 +52,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run dist -- --publish always
+
+      # electron-builder publishes only its own targets. The portable folder is packed from the
+      # win-unpacked folder the step above leaves behind and attached to the same draft release.
+      - name: Pack Portable Folder
+        run: node scripts/pack-portable-folder.mjs
+
+      - name: Upload Portable Folder
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ github.ref_name }} dist/Aqua-Browser-Portable.zip --clobber
