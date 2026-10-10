@@ -2,7 +2,7 @@
   "appId": "com.aquabrowser.app",
   "productName": "Aqua Browser",
   "electronDist": "node_modules/electron/dist",
-  "electronVersion": "44.4.5",
+  "electronVersion": "44.7.0",
   "extraMetadata": {
     "description": "Aqua Browser"
   },
