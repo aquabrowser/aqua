@@ -3,6 +3,7 @@
 </p>
 
 <p align="center">
+  <a href="https://aquabrowser.org">Website</a> ·
   <a href="https://github.com/aquabrowser/aqua/releases/latest">Download</a> ·
   <a href="docs/security.md">Security</a> ·
   <a href="docs/architecture.md">Architecture</a> ·
