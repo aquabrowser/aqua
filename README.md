@@ -123,8 +123,9 @@ git push origin v1.0.1
 
 The [Release Build](.github/workflows/release.yml) workflow type-checks, runs the tests, builds
 the installer, the portable `.exe` and the portable folder `.zip`, and uploads them with
-`latest.yml` and the `.blockmap` to a draft release. Installed copies see the release once it is published. They read releases without
-a token, so updates reach users only while the repository is public.
+`latest.yml` and the `.blockmap` to a draft release. Installed copies see the release once it is
+published. They read releases without a token, so updates reach users only while the repository is
+public.
 
 ## Known limitations
 
