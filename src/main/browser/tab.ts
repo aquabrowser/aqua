@@ -952,6 +952,9 @@ export class Tab {
         if (!PRIVILEGED_SCHEMES.has(scheme)) void this.openExternal(details.url, 'page')
         return { action: 'deny' }
       }
+      // Only a local page may open local files: a modified click on a `file://host/share` link would
+      // otherwise reach `onTabOpen` below, a load the browser makes itself (see `isWebUrl`).
+      if (scheme === 'file:' && schemeOf(wc.getURL()) !== 'file:') return { action: 'deny' }
       const hasGesture = Date.now() - this.lastUserInput < POPUP_GESTURE_WINDOW_MS
       if (!hasGesture) {
         if (details.url && details.url !== 'about:blank') {

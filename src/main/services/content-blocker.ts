@@ -6,14 +6,14 @@ import {
   type WebContents
 } from 'electron'
 import { createHash, randomBytes } from 'crypto'
-import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
 import { Worker } from 'worker_threads'
 import { ENGINE_VERSION, FiltersEngine, Request } from '@ghostery/adblocker'
 import { parse } from 'tldts'
 import type { ContentBlockerInfo } from '../../shared/types'
-import { listsFor, looksLikeFilterList, RESOURCES_URLS, type FilterList } from '../blocker/catalog'
+import { listsFor, looksLikeFilterList, type FilterList } from '../blocker/catalog'
 import { blockerEnv, ENGINE_CONFIG } from '../blocker/engine'
 import { siteFixScripts } from '../blocker/site-fixes'
 import { Signal } from '../lib/signal'
@@ -81,6 +81,10 @@ interface UpdateState {
  * The lists ship with Aqua (resources/filters) and are refreshed from uBO's
  * mirrors every four days; the refreshed copies and their date are kept in
  * `<userData>/filters`. They are public data - nothing about browsing is.
+ *
+ * The scriptlets and redirect resources (resources.json) are code that runs in
+ * every page, so they only ever come with Aqua itself and are never downloaded:
+ * lists name a scriptlet, they can't supply one.
  */
 export class ContentBlockerService {
   readonly changed = new Signal<ContentBlockerInfo>()
@@ -118,6 +122,12 @@ export class ContentBlockerService {
   start(): void {
     if (this.started) return
     this.started = true
+    // Versions before 1.1.2 downloaded resources.json; that copy is never used again.
+    try {
+      rmSync(join(this.cacheDir, 'resources.json'), { force: true })
+    } catch {
+      // A read-only drive: the copy stays, unused.
+    }
     this.settings.changed.on((s) => {
       const groups = JSON.stringify(s.blockerLists)
       if (groups !== this.lastGroups) {
@@ -339,8 +349,6 @@ export class ContentBlockerService {
         writeAtomically(join(this.cacheDir, `${list.id}.txt`), text)
         downloaded++
       }
-      const resources = await download(RESOURCES_URLS, isJson)
-      if (resources !== null) writeAtomically(join(this.cacheDir, 'resources.json'), resources)
       if (downloaded > 0) this.writeState({ updatedAt: Date.now() })
       this.updateError =
         downloaded === lists.length
@@ -371,7 +379,8 @@ export class ContentBlockerService {
         this.rebuildQueued = false
         const lists = listsFor(this.settings.get().blockerLists)
         const files = lists.map((list) => this.listFile(list)).filter((file) => file !== null)
-        const resources = this.freshest('resources.json')
+        const bundledResources = join(this.bundledDir, 'resources.json')
+        const resources = existsSync(bundledResources) ? bundledResources : null
         if (files.length === 0) {
           this.engine = null
           this.status = lists.length === 0 ? 'ready' : 'error'
@@ -529,14 +538,6 @@ function decodeDataUrl(url: string): { body: Buffer; contentType: string } | nul
     return { body, contentType }
   } catch {
     return null
-  }
-}
-
-function isJson(text: string): boolean {
-  try {
-    return typeof JSON.parse(text) === 'object'
-  } catch {
-    return false
   }
 }
 

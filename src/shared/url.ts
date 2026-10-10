@@ -102,6 +102,22 @@ export function siteKey(url: string): string | null {
 }
 
 /**
+ * Whether the browser may open `url` for a page (its context menu's "Open link
+ * in new tab" and the like): http(s) only. Loads the browser starts itself skip
+ * Chromium's check that keeps web pages away from file:, so a `file://host/share`
+ * link would make Windows connect to that host and send the user's credentials.
+ */
+export function isWebUrl(url: string): boolean {
+  const parsed = safeParse(url)
+  return !!parsed && (parsed.protocol === 'http:' || parsed.protocol === 'https:')
+}
+
+/** Whether a page's link or image may be saved: web addresses and the page's own data: and blob: content. */
+export function isSavableUrl(url: string): boolean {
+  return isWebUrl(url) || /^(data|blob):/i.test(url)
+}
+
+/**
  * The web address carried by a drag (a link or an image dragged from a page,
  * a URL dragged from another app), or null. Only http(s) addresses qualify:
  * a drop must never run `javascript:` or open local files.

@@ -32,7 +32,9 @@ import { performPendingWipe } from './services/vault'
 import type { EventMap } from '../shared/ipc'
 import type { AutoLockTime, BrowserSettings } from '../shared/types'
 
-const DEV_UI_URL = process.env['ELECTRON_RENDERER_URL']
+// Development only (electron-vite's dev server). A packaged Aqua ignores it: the UI's origin is the one
+// IPC trusts, and any program that can set an environment variable could serve its own lock screen.
+const DEV_UI_URL = app.isPackaged ? undefined : process.env['ELECTRON_RENDERER_URL']
 const AUTO_LOCK_MS: Record<AutoLockTime, number> = {
   '1m': 60_000,
   '5m': 300_000,

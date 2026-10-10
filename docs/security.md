@@ -57,17 +57,17 @@ Get-ChildItem "$env:APPDATA\aqua-browser" -Recurse -File -ErrorAction SilentlyCo
 - `@ghostery/adblocker` 2.18.2 (MPL-2.0) with uBlock Origin's filter lists: uBlock filters (ads, badware, privacy, quick fixes, unbreak), EasyList, EasyPrivacy, Peter Lowe's list, Online Malicious URL Blocklist. Cookie-notice and annoyance lists are optional.
 - Network requests are cancelled in `session.webRequest`; redirect resources are served from `aqua-resource://<random host per run>/`; `$csp=` filters add a header.
 - Element-hiding CSS and scriptlets are injected before page scripts (`executeInMainWorld`).
-- Lists ship with Aqua and refresh every 4 days via Node's `fetch` (no cookies).
+- Lists ship with Aqua and refresh every 4 days via Node's `fetch` (no cookies). The scriptlets and redirect resources (`resources.json`) are code that runs in pages, so they ship with Aqua only and are never downloaded.
 - Not supported compared with uBlock Origin: element picker, logger, dynamic filtering, `$popup` filters, procedural cosmetic filters, HTML filtering.
 
 ## Network requests Aqua makes on its own
 
-| What                                       | When                                         | Where                                                                                                                                                                             |
-| ------------------------------------------ | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Filter list refresh                        | every 4 days                                 | ublockorigin.github.io, ublockorigin.pages.dev, cdn.jsdelivr.net, pgl.yoyo.org, curbengh.github.io, malware-filter.gitlab.io, malware-filter.pages.dev, raw.githubusercontent.com |
-| Favicons (New Tab, bookmarks bar, History) | when shown                                   | the site each icon belongs to, without cookies                                                                                                                                    |
-| New Tab picture from a URL                 | once, when set                               | the address entered                                                                                                                                                               |
-| Update check (installed copies only)       | 15 s after start, and on "Check for updates" | github.com (the release feed, `latest.yml`, the installer), and the GitHub download host it redirects to                                                                          |
+| What                                       | When                                         | Where                                                                                                                                                  |
+| ------------------------------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Filter list refresh                        | every 4 days                                 | ublockorigin.github.io, ublockorigin.pages.dev, cdn.jsdelivr.net, pgl.yoyo.org, curbengh.github.io, malware-filter.gitlab.io, malware-filter.pages.dev |
+| Favicons (New Tab, bookmarks bar, History) | when shown                                   | the site each icon belongs to, without cookies                                                                                                         |
+| New Tab picture from a URL                 | once, when set                               | the address entered                                                                                                                                    |
+| Update check (installed copies only)       | 15 s after start, and on "Check for updates" | github.com (the release feed, `latest.yml`, the installer), and the GitHub download host it redirects to                                               |
 
 No crash reports, usage statistics, search suggestions, Safe Browsing lookups or spell-check dictionary downloads. Portable copies make no update check.
 

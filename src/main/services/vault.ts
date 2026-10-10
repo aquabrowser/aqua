@@ -131,15 +131,23 @@ export class VaultService {
     this.changed.emit(this.status())
   }
 
+  /**
+   * Re-wraps the data key with a new password. Only while unlocked, and wrong current passwords count
+   * towards the same back-off as the lock screen, so this can't be used to guess the password.
+   */
   async changePassword(current: string, next: string): Promise<VaultResult> {
     if (this.ephemeral) return { success: false, error: 'A guest session has no master password.' }
+    if (!this.isUnlocked) return { success: false, error: 'Unlock Aqua to change the password.' }
+    const wait = Math.ceil((this.throttle().lockedUntil - Date.now()) / 1000)
+    if (wait > 0) return { success: false, error: `Too many attempts. Try again in ${wait}s.`, retryAfter: wait }
     const problem = passwordProblem(next)
     if (problem) return { success: false, error: problem }
     return this.exclusive(async () => {
       const header = this.header()
       if (!header) return { success: false, error: 'No vault to update.' }
       const dataKey = await this.unwrap(header, current)
-      if (!dataKey) return { success: false, error: 'That isn’t your current password.' }
+      if (!dataKey) return this.fail('That isn’t your current password.')
+      this.db.setMeta('throttle', { failures: 0, lockedUntil: 0 } satisfies Throttle)
       const kdf = defaultKdfParams()
       const kek = await deriveKey(next, kdf)
       try {
@@ -153,6 +161,8 @@ export class VaultService {
         kek.fill(0)
         dataKey.fill(0)
       }
+      // The old header (the data key wrapped with the old password) must not stay behind in the WAL.
+      this.db.checkpoint()
       return { success: true }
     })
   }
@@ -214,14 +224,14 @@ export class VaultService {
   }
 
   /** Exponential back-off after three failures, persisted so restarting the app does not reset it. */
-  private fail(): VaultResult {
+  private fail(message = 'Wrong password.'): VaultResult {
     const t = this.throttle()
     t.failures++
-    let result: VaultResult = { success: false, error: 'Wrong password.' }
+    let result: VaultResult = { success: false, error: message }
     if (t.failures >= 3) {
       const seconds = Math.min(300, 2 ** (t.failures - 3) * 5)
       t.lockedUntil = Date.now() + seconds * 1000
-      result = { success: false, error: `Wrong password. Try again in ${seconds}s.`, retryAfter: seconds }
+      result = { success: false, error: `${message} Try again in ${seconds}s.`, retryAfter: seconds }
     }
     this.db.setMeta('throttle', t)
     return result

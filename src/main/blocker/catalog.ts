@@ -93,7 +93,9 @@ export const FILTER_LISTS: readonly FilterList[] = [
 
 /**
  * uBlock Origin's scriptlets and redirect resources (`+js(…)`, `$redirect=`),
- * as converted for the engine by its maintainers.
+ * as converted for the engine by its maintainers. Fetched only by
+ * scripts/fetch-filters.mjs, into resources/filters for review and release:
+ * this is code that runs in every page, so Aqua never downloads it itself.
  */
 export const RESOURCES_URLS = [
   'https://raw.githubusercontent.com/ghostery/adblocker/master/packages/adblocker/assets/ublock-origin/resources.json',

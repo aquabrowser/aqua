@@ -26,7 +26,7 @@ import type {
 } from '../../shared/types'
 import type { EventMap } from '../../shared/ipc'
 import { searchUrl } from '../../shared/search'
-import { internalPageOf, NEW_TAB_URL } from '../../shared/url'
+import { internalPageOf, isWebUrl, NEW_TAB_URL } from '../../shared/url'
 import { classifyInput } from '../omnibox/classify'
 import type { ProfileService } from '../services/profiles'
 import type { AppContext, WindowOptions } from '../app-context'
@@ -571,8 +571,9 @@ export class BrowserWindowController implements TabHost {
     this.appContext.openWindow({ urls: [url], private: true })
   }
 
-  /** Opens `url` next to `from` the way a link click would. */
+  /** Opens `url` next to `from` the way a link click would. Web addresses only (see `isWebUrl`). */
   openFromTab(from: Tab, url: string, background: boolean): void {
+    if (!isWebUrl(url)) return
     this.onTabOpen(from, url, background ? 'background-tab' : 'foreground-tab')
   }
 

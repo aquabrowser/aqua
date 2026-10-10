@@ -9,6 +9,7 @@ import {
 } from 'electron'
 import { SEARCH_ENGINES, searchUrl } from '../../shared/search'
 import type { ContextMenuRequest } from '../../shared/types'
+import { isSavableUrl, isWebUrl } from '../../shared/url'
 import type { Tab } from './tab'
 import type { BrowserWindowController } from './window-controller'
 
@@ -107,31 +108,36 @@ export function showPageContextMenu(controller: BrowserWindowController, tab: Ta
   const items: MenuItemConstructorOptions[] = []
   const engine = SEARCH_ENGINES[controller.services.settings.get().searchEngine]
 
+  // Opening and saving are loads the browser makes itself, so they are limited to web addresses
+  // (and saving to the page's own data): never file:, local or on a network share.
   if (params.linkURL && /^(https?|ftp|file|data|blob):/.test(params.linkURL)) {
     const link = params.linkURL
-    items.push(
-      { label: 'Open link in new tab', click: () => controller.openFromTab(tab, link, true) },
-      { label: 'Open link in new window', click: () => controller.openInNewWindow(link) },
-      ...(controller.isPrivate
-        ? []
-        : [{ label: 'Open link in private window', click: () => controller.openInPrivateWindow(link) }]),
-      SEPARATOR,
-      { label: 'Save link as…', click: () => tab.saveAs(link) },
-      { label: 'Copy link address', click: () => void clipboard.writeText(link) },
-      SEPARATOR
-    )
+    if (isWebUrl(link)) {
+      items.push(
+        { label: 'Open link in new tab', click: () => controller.openFromTab(tab, link, true) },
+        { label: 'Open link in new window', click: () => controller.openInNewWindow(link) },
+        ...(controller.isPrivate
+          ? []
+          : [{ label: 'Open link in private window', click: () => controller.openInPrivateWindow(link) }]),
+        SEPARATOR
+      )
+    }
+    if (isSavableUrl(link)) items.push({ label: 'Save link as…', click: () => tab.saveAs(link) })
+    items.push({ label: 'Copy link address', click: () => void clipboard.writeText(link) }, SEPARATOR)
   }
 
   if (params.mediaType === 'image' && params.srcURL) {
     const src = params.srcURL
     items.push(
-      { label: 'Open image in new tab', click: () => controller.openFromTab(tab, src, true) },
-      { label: 'Save image as…', click: () => tab.saveAs(src) },
+      ...(isWebUrl(src)
+        ? [{ label: 'Open image in new tab', click: () => controller.openFromTab(tab, src, true) }]
+        : []),
+      ...(isSavableUrl(src) ? [{ label: 'Save image as…', click: () => tab.saveAs(src) }] : []),
       { label: 'Copy image', click: () => wc.copyImageAt(params.x, params.y) },
       { label: 'Copy image address', click: () => void clipboard.writeText(src) },
       SEPARATOR
     )
-  } else if ((params.mediaType === 'video' || params.mediaType === 'audio') && /^https?:/.test(params.srcURL)) {
+  } else if ((params.mediaType === 'video' || params.mediaType === 'audio') && isWebUrl(params.srcURL)) {
     const src = params.srcURL
     const noun = params.mediaType === 'video' ? 'video' : 'audio'
     items.push(

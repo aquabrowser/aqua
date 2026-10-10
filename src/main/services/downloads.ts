@@ -1,7 +1,8 @@
 import { app, shell, type DownloadItem, type Session, type WebContents } from 'electron'
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync, unlinkSync } from 'fs'
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync, unlinkSync, writeFileSync } from 'fs'
 import { basename, dirname, extname, join } from 'path'
 import type { DownloadAction, DownloadEntry, DownloadStatus } from '../../shared/types'
+import { opensElsewhere, safeFileName, ZONE_IDENTIFIER } from '../lib/download-safety'
 import type { EncryptedDocument, VaultDatabase } from '../storage/database'
 import { Signal, uid } from '../lib/signal'
 import type { SettingsService } from './settings'
@@ -166,7 +167,9 @@ export class DownloadsService {
         if (!allowed || (finished !== null && finished !== 'completed')) return discard()
         const finalPath = this.uniquePath(app.getPath('downloads'), name)
         if (finished === 'completed') {
-          this.recordFinished(item, partition, finalPath, moveFile(item.getSavePath(), finalPath))
+          const moved = moveFile(item.getSavePath(), finalPath)
+          if (moved) markOfTheWeb(finalPath, item.getURL())
+          this.recordFinished(item, partition, finalPath, moved)
           rmSync(staging, { recursive: true, force: true })
           return
         }
@@ -250,6 +253,11 @@ export class DownloadsService {
         break
       case 'open': {
         if (entry.status !== 'completed') return
+        if (opensElsewhere(entry.savePath)) {
+          if (existsSync(entry.savePath)) shell.showItemInFolder(entry.savePath)
+          else this.patch(entry, { fileMissing: true }, true)
+          return
+        }
         const error = await shell.openPath(entry.savePath)
         if (error) this.patch(entry, { fileMissing: !existsSync(entry.savePath) }, true)
         break
@@ -398,6 +406,7 @@ export class DownloadsService {
         if (state === 'completed' && moveFile(staged, live.finalPath)) savePath = live.finalPath
         rmSync(dirname(staged), { recursive: true, force: true })
       }
+      if (state === 'completed' && savePath) markOfTheWeb(savePath, item.getURL())
       if (!current) return
       this.patch(
         current,
@@ -480,7 +489,7 @@ export class DownloadsService {
   }
 
   private safeName(filename: string): string {
-    return filename.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').trim() || 'download'
+    return safeFileName(filename)
   }
 
   private uniquePath(dir: string, filename: string): string {
@@ -493,6 +502,18 @@ export class DownloadsService {
       candidate = join(dir, `${stem} (${n})${ext}`)
     }
     return candidate
+  }
+}
+
+/** Marks a finished download as coming from the Internet (see ZONE_IDENTIFIER). Local file: copies stay unmarked. */
+function markOfTheWeb(path: string, url: string): void {
+  // Writing a stream of a missing file would create an empty one.
+  if (process.platform !== 'win32' || /^file:/i.test(url) || !existsSync(path)) return
+  try {
+    writeFileSync(`${path}:Zone.Identifier`, ZONE_IDENTIFIER)
+  } catch (err) {
+    // FAT32 and exFAT drives have no alternate data streams.
+    console.warn('[downloads] could not mark a download as from the Internet:', (err as Error).message)
   }
 }
 
